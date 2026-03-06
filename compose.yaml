@@ -1,0 +1,49 @@
+name: wheelchair-map
+services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: wheelchair-db
+    environment:
+      POSTGRES_DB: wheelchair
+      POSTGRES_USER: wheelchair
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-wheelchair_secret}
+    volumes:
+      - /opt/docker/volumes/wheelchair-map/db:/var/lib/postgresql/data
+      - ./backend/src/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./scripts/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wheelchair"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: wheelchair-api
+    environment:
+      DATABASE_URL: postgres://wheelchair:${DB_PASSWORD:-wheelchair_secret}@db:5432/wheelchair
+      ORS_API_KEY: ${ORS_API_KEY:-}
+      ORS_URL: https://api.openrouteservice.org
+      PORT: 3000
+    ports:
+      - "3010:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: wheelchair-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://${HOST_IP:-192.168.10.10}:3010
+      NEXT_PUBLIC_MAP_CENTER_LAT: 50.0755
+      NEXT_PUBLIC_MAP_CENTER_LNG: 14.4378
+    ports:
+      - "3011:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
