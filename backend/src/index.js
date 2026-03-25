@@ -23,6 +23,52 @@ app.register(footwaysRoutes, { prefix: '/api/footways' });
 app.register(routeRoutes, { prefix: '/api/route' });
 app.register(importRoutes, { prefix: '/api/import' });
 
+// Nearest POI (s volitelným filtrem na kategorii a wheelchair)
+app.get('/api/pois/nearest', async (req) => {
+  const { lat, lng, category, wheelchair, limit } = req.query;
+  if (!lat || !lng) return { error: 'Missing lat, lng' };
+
+  const params = [parseFloat(lng), parseFloat(lat)];
+  const conditions = [];
+  let idx = 3;
+
+  if (category) {
+    conditions.push(`category = $${idx++}`);
+    params.push(category);
+  }
+  if (wheelchair) {
+    conditions.push(`wheelchair = $${idx++}`);
+    params.push(wheelchair);
+  }
+
+  params.push(parseInt(limit) || 5);
+  const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+  const result = await pool.query(`
+    SELECT id, osm_id, name, wheelchair, category,
+           ST_AsGeoJSON(geom)::json as geometry, tags,
+           ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography) as distance_m
+    FROM pois
+    ${where}
+    ORDER BY geom <-> ST_SetSRID(ST_MakePoint($1, $2), 4326)
+    LIMIT $${idx}
+  `, params);
+
+  return {
+    type: 'FeatureCollection',
+    features: result.rows.map(r => ({
+      type: 'Feature',
+      id: r.id,
+      geometry: r.geometry,
+      properties: {
+        osm_id: r.osm_id, name: r.name, wheelchair: r.wheelchair,
+        category: r.category, tags: r.tags,
+        distance_m: Math.round(parseFloat(r.distance_m))
+      }
+    }))
+  };
+});
+
 app.get('/api/health', async () => {
   const result = await pool.query('SELECT NOW() as time, COUNT(*) as pois FROM pois');
   return { status: 'ok', ...result.rows[0] };
@@ -36,7 +82,9 @@ app.get('/api/stats', async () => {
       (SELECT COUNT(*) FROM pois WHERE wheelchair = 'limited') as limited_pois,
       (SELECT COUNT(*) FROM pois WHERE wheelchair = 'no') as inaccessible_pois,
       (SELECT COUNT(*) FROM footways) as total_footways,
-      (SELECT COUNT(*) FROM barriers WHERE active = true) as active_barriers
+      (SELECT COUNT(*) FROM barriers WHERE active = true) as active_barriers,
+      (SELECT COUNT(*) FROM pois WHERE category = 'toilets') as total_toilets,
+      (SELECT COUNT(*) FROM pois WHERE category = 'toilets' AND wheelchair = 'yes') as accessible_toilets
   `);
   return stats.rows[0];
 });

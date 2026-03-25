@@ -36,12 +36,11 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api-wheelca.mhai.app}
     container_name: wheelchair-web
-    environment:
-      NEXT_PUBLIC_API_URL: http://${HOST_IP:-192.168.10.10}:3010
-      NEXT_PUBLIC_MAP_CENTER_LAT: 50.0755
-      NEXT_PUBLIC_MAP_CENTER_LNG: 14.4378
     ports:
       - "3011:3000"
     depends_on:

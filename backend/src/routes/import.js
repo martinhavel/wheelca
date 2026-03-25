@@ -107,6 +107,58 @@ export async function importRoutes(app) {
   });
 }
 
+  // Import WC/toalet z OSM (i bez wheelchair tagu)
+  app.post('/osm-toilets', async (req) => {
+    const { minLat, minLng, maxLat, maxLng } = req.body;
+    const bbox = `${minLat},${minLng},${maxLat},${maxLng}`;
+
+    const query = `
+      [out:json][timeout:60];
+      (
+        node["amenity"="toilets"](${bbox});
+        way["amenity"="toilets"](${bbox});
+      );
+      out center tags;
+    `;
+
+    const response = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: `data=${encodeURIComponent(query)}`
+    });
+
+    if (!response.ok) {
+      return { error: 'Overpass API error', status: response.status };
+    }
+
+    const data = await response.json();
+    let imported = 0;
+
+    for (const el of data.elements) {
+      const lat = el.lat || el.center?.lat;
+      const lng = el.lon || el.center?.lon;
+      if (!lat || !lng) continue;
+
+      const name = el.tags?.name || null;
+      const wheelchair = el.tags?.wheelchair || 'unknown';
+      const tags = JSON.stringify(el.tags || {});
+
+      await app.db.query(`
+        INSERT INTO pois (osm_id, name, wheelchair, category, geom, tags)
+        VALUES ($1, $2, $3, 'toilets', ST_SetSRID(ST_MakePoint($4, $5), 4326), $6)
+        ON CONFLICT (osm_id) DO UPDATE SET
+          name = EXCLUDED.name,
+          wheelchair = EXCLUDED.wheelchair,
+          category = 'toilets',
+          tags = EXCLUDED.tags,
+          updated_at = NOW()
+      `, [el.id, name, wheelchair, lng, lat, tags]);
+      imported++;
+    }
+
+    return { imported, total_elements: data.elements.length };
+  });
+}
+
 function computeScore(tags) {
   if (!tags) return 0;
   const surface = tags.surface;

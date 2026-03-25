@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Bezbarierova Mapa Praha',
-  description: 'Interaktivni mapa bezbarierovych tras pro vozickare v Praze',
+  title: 'Wheelca — Bezbariérová mapa',
+  description: 'Interaktivní mapa přístupnosti pro vozíčkáře. Bezbariérové trasy, místa a WC.',
   manifest: '/manifest.json',
 };
 
