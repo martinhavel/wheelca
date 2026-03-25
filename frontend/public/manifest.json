@@ -1,11 +1,11 @@
 {
-  "name": "Bezbarierova Mapa Praha",
-  "short_name": "BezbarierPraha",
-  "description": "Interaktivni mapa bezbarierovych tras pro vozickare",
+  "name": "Wheelca — Bezbariérová mapa",
+  "short_name": "Wheelca",
+  "description": "Interaktivní mapa přístupnosti pro vozíčkáře. Bezbariérové trasy, místa a WC.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#4cc9f0",
+  "background_color": "#ffffff",
+  "theme_color": "#0891b2",
   "icons": [
     {
       "src": "/icon-192.png",

@@ -1,7 +1,15 @@
 export async function importRoutes(app) {
   // Import POI z OSM Overpass API pro daný bbox
   app.post('/osm-pois', async (req) => {
-    const { minLat, minLng, maxLat, maxLng } = req.body;
+    const minLat = parseFloat(req.body.minLat);
+    const minLng = parseFloat(req.body.minLng);
+    const maxLat = parseFloat(req.body.maxLat);
+    const maxLng = parseFloat(req.body.maxLng);
+    if ([minLat, minLng, maxLat, maxLng].some(isNaN) ||
+        minLat < -90 || maxLat > 90 || minLng < -180 || maxLng > 180 ||
+        (maxLat - minLat) > 0.5 || (maxLng - minLng) > 0.5) {
+      return { error: 'Invalid or too large bbox' };
+    }
     const bbox = `${minLat},${minLng},${maxLat},${maxLng}`;
 
     const query = `
@@ -53,7 +61,15 @@ export async function importRoutes(app) {
 
   // Import chodníků z OSM
   app.post('/osm-footways', async (req) => {
-    const { minLat, minLng, maxLat, maxLng } = req.body;
+    const minLat = parseFloat(req.body.minLat);
+    const minLng = parseFloat(req.body.minLng);
+    const maxLat = parseFloat(req.body.maxLat);
+    const maxLng = parseFloat(req.body.maxLng);
+    if ([minLat, minLng, maxLat, maxLng].some(isNaN) ||
+        minLat < -90 || maxLat > 90 || minLng < -180 || maxLng > 180 ||
+        (maxLat - minLat) > 0.5 || (maxLng - minLng) > 0.5) {
+      return { error: 'Invalid or too large bbox' };
+    }
     const bbox = `${minLat},${minLng},${maxLat},${maxLng}`;
 
     const query = `
@@ -105,11 +121,18 @@ export async function importRoutes(app) {
 
     return { imported, total_elements: data.elements.length };
   });
-}
 
   // Import WC/toalet z OSM (i bez wheelchair tagu)
   app.post('/osm-toilets', async (req) => {
-    const { minLat, minLng, maxLat, maxLng } = req.body;
+    const minLat = parseFloat(req.body.minLat);
+    const minLng = parseFloat(req.body.minLng);
+    const maxLat = parseFloat(req.body.maxLat);
+    const maxLng = parseFloat(req.body.maxLng);
+    if ([minLat, minLng, maxLat, maxLng].some(isNaN) ||
+        minLat < -90 || maxLat > 90 || minLng < -180 || maxLng > 180 ||
+        (maxLat - minLat) > 0.5 || (maxLng - minLng) > 0.5) {
+      return { error: 'Invalid or too large bbox' };
+    }
     const bbox = `${minLat},${minLng},${maxLat},${maxLng}`;
 
     const query = `
@@ -171,6 +194,7 @@ function computeScore(tags) {
 
   if (tags.wheelchair === 'no') return 3;
   if (tags.wheelchair === 'yes') return 1;
+  if (tags.wheelchair === 'limited') return 2;
   if (smoothness === 'excellent' || smoothness === 'good') return 1;
   if (smoothness === 'bad' || smoothness === 'very_bad' || smoothness === 'horrible') return 3;
   if (goodSurfaces.includes(surface)) return 1;

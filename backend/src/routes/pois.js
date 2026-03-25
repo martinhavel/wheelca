@@ -1,7 +1,8 @@
 export async function poisRoutes(app) {
-  app.get('/', async (req) => {
+  app.get('/', async (req, reply) => {
     const { minLat, minLng, maxLat, maxLng, wheelchair } = req.query;
     if (!minLat || !minLng || !maxLat || !maxLng) {
+      reply.code(400);
       return { error: 'Missing bbox params' };
     }
     let whereClause = 'geom && ST_MakeEnvelope($1, $2, $3, $4, 4326)';

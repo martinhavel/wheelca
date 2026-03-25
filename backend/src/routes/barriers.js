@@ -1,8 +1,9 @@
 export async function barriersRoutes(app) {
   // Získat bariéry v bounding boxu
-  app.get('/', async (req) => {
+  app.get('/', async (req, reply) => {
     const { minLat, minLng, maxLat, maxLng } = req.query;
     if (!minLat || !minLng || !maxLat || !maxLng) {
+      reply.code(400);
       return { error: 'Missing bbox params: minLat, minLng, maxLat, maxLng' };
     }
     const result = await app.db.query(`
@@ -31,9 +32,10 @@ export async function barriersRoutes(app) {
   });
 
   // Nahlásit novou bariéru
-  app.post('/', async (req) => {
+  app.post('/', async (req, reply) => {
     const { barrier_type, description, severity, lat, lng, photo_url, reported_by } = req.body;
     if (!barrier_type || !lat || !lng) {
+      reply.code(400);
       return { error: 'Missing required fields: barrier_type, lat, lng' };
     }
     const result = await app.db.query(`

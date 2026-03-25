@@ -3,14 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
-import { fetchPois, fetchFootways, fetchBarriers, fetchRoute, fetchNearestPois, reportBarrier, fetchStats, importOsmPois, importOsmFootways, importOsmToilets } from '../lib/api';
+import { fetchPois, fetchFootways, fetchBarriers, fetchRoute, fetchNearestPois, reportBarrier, fetchStats, importOsmPois, importOsmFootways, importOsmToilets, submitRating } from '../lib/api';
+import { getFeatures, filterByBounds, savePendingBarrier, getPendingBarriers, clearPendingBarriers, savePendingRating, getOfflineStatus } from '../lib/offlineStorage';
+import { buildGraph, findRoute as offlineRoute, PROFILES as ROUTE_PROFILES } from '../lib/offlineRouter';
+import { t, getLang, setLang, SUPPORTED_LANGS, getSurface, getSmoothness, getCategory } from '../lib/i18n';
+import { CITIES } from '../lib/cities';
 import { PRAGUE_CENTER, WHEELCHAIR_COLORS, WHEELCHAIR_LABELS, CATEGORY_LABELS, CATEGORY_ICONS, SCORE_COLORS, SCORE_LABELS, SURFACE_LABELS, SMOOTHNESS_LABELS, FILTER_GROUPS, BARRIER_TYPES } from '../lib/constants';
 import SearchBar from './SearchBar';
 import Sidebar from './Sidebar';
 import ReportDialog from './ReportDialog';
 
 const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
+const TILE_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>';
 
 function createPoiIcon(wheelchair, category) {
   const color = WHEELCHAIR_COLORS[wheelchair] || WHEELCHAIR_COLORS.unknown;
@@ -45,7 +49,7 @@ function DataLoader({ onMoveEnd }) {
   return null;
 }
 
-function FootwayLayer({ data }) {
+function FootwayLayer({ data, lang }) {
   const map = useMap();
   const layerRef = useRef(null);
   useEffect(() => {
@@ -83,6 +87,18 @@ function FitBounds({ routeId, bounds }) {
   return null;
 }
 
+function CityFlyTo({ city }) {
+  const map = useMap();
+  const prevCityRef = useRef(city);
+  useEffect(() => {
+    if (prevCityRef.current !== city && CITIES[city]) {
+      map.flyTo(CITIES[city].center, CITIES[city].zoom || 15, { duration: 1.5 });
+      prevCityRef.current = city;
+    }
+  }, [city, map]);
+  return null;
+}
+
 function FlyTo({ target }) {
   const map = useMap();
   const lastRef = useRef(null);
@@ -95,7 +111,7 @@ function FlyTo({ target }) {
   return null;
 }
 
-function buildPoiPopup(p) {
+function buildPoiPopup(p, lang) {
   const tags = p.tags || {};
   const cat = CATEGORY_LABELS[p.category] || p.category;
   const wColor = WHEELCHAIR_COLORS[p.wheelchair] || '#9ca3af';
@@ -135,12 +151,64 @@ export default function MapView() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
   const [userPos, setUserPos] = useState(null);
+  const [isOffline, setIsOffline] = useState(false);
+  const [offlineData, setOfflineData] = useState(null);
+  const [routeProfile, setRouteProfile] = useState('accessible');
+  const [showRating, setShowRating] = useState(null);
+  const [lang, setLangState] = useState('cs');
+  const [city, setCity] = useState('prague');
+  const [showHelp, setShowHelp] = useState(false);
   const mapRef = useRef(null);
   const lastImportRef = useRef(0);
+  const graphRef = useRef(null);
+  const graphBuildingRef = useRef(false);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
-  useEffect(() => { fetchStats().then(setStats).catch(() => {}); }, []);
+  useEffect(() => {
+    setLangState(getLang());
+    const savedCity = localStorage.getItem('wheelca-city');
+    if (savedCity && CITIES[savedCity]) setCity(savedCity);
+  }, []);
+
+  useEffect(() => {
+    setIsOffline(!navigator.onLine);
+    const goOffline = () => setIsOffline(true);
+    const goOnline = () => setIsOffline(false);
+    window.addEventListener('offline', goOffline);
+    window.addEventListener('online', goOnline);
+    return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
+  }, []);
+
+  useEffect(() => {
+    async function loadOfflineCache() {
+      const status = await getOfflineStatus();
+      if (status.hasData) {
+        const [allPois, allFootways, allBarriers] = await Promise.all([getFeatures('pois'), getFeatures('footways'), getFeatures('barriers')]);
+        setOfflineData({ pois: allPois, footways: allFootways, barriers: allBarriers });
+        if (!graphRef.current && !graphBuildingRef.current) {
+          graphBuildingRef.current = true;
+          setTimeout(() => { graphRef.current = buildGraph(allFootways); graphBuildingRef.current = false; }, 100);
+        }
+      }
+    }
+    loadOfflineCache();
+  }, []);
+
+  useEffect(() => {
+    if (!isOffline) {
+      getPendingBarriers().then(async (pending) => {
+        if (pending.length === 0) return;
+        let synced = 0;
+        for (const b of pending) { try { await reportBarrier(b); synced++; } catch (e) {} }
+        if (synced > 0) { await clearPendingBarriers(); showToast(t('toastSynced', lang) + ' ' + synced + ' ' + t('toastBarriersSync', lang)); }
+      });
+    }
+  }, [isOffline]);
+
+  useEffect(() => {
+    if (!isOffline) fetchStats().then(setStats).catch(() => {});
+  }, [isOffline]);
 
   // Filter POIs by active category filters
   const filteredPois = useCallback(() => {
@@ -183,7 +251,7 @@ export default function MapView() {
         fetchStats().then(setStats);
       }
     } catch {}
-  }, [layers]);
+  }, [layers, isOffline, offlineData, loadDataFromOffline]);
 
   const handleImport = async () => {
     if (!mapRef.current) return;
@@ -225,6 +293,17 @@ export default function MapView() {
   const clearRoute = () => {
     setRoute(null); setRouteStart(null); setRouteEnd(null);
     setRouteInfo(null); setRouteMode(null);
+  };
+
+  const handleLangChange = (l) => { setLangState(l); setLang(l); };
+
+  const handleCityChange = (newCity) => {
+    if (!CITIES[newCity] || newCity === city) return;
+    setCity(newCity);
+    localStorage.setItem('wheelca-city', newCity);
+    setPois(null); setFootways(null); setBarriers(null); setRoute(null); setRouteInfo(null); setRouteStart(null); setRouteEnd(null);
+    graphRef.current = null;
+    showToast((CITIES[newCity].name[lang] || CITIES[newCity].name.en) + '...');
   };
 
   const handleLocate = () => {
@@ -295,6 +374,72 @@ export default function MapView() {
     }
   };
 
+  const handleDataUpdated = useCallback(() => {
+    async function reload() {
+      const s = await getOfflineStatus();
+      if (s.hasData) {
+        const [allPois, allFootways, allBarriers] = await Promise.all([getFeatures('pois'), getFeatures('footways'), getFeatures('barriers')]);
+        setOfflineData({ pois: allPois, footways: allFootways, barriers: allBarriers });
+        graphRef.current = buildGraph(allFootways);
+      }
+    }
+    reload();
+  }, []);
+
+  const handleOfflineStatusChange = useCallback((status) => {
+    if (status === 'online' && mapRef.current) loadData(mapRef.current);
+  }, [loadData]);
+
+  function generateGpx(route, routeInfo) {
+    const feat = route.features?.[0];
+    if (!feat) return null;
+    const coords = feat.geometry?.coordinates || [];
+    const distStr = routeInfo?.dist ? (routeInfo.dist / 1000).toFixed(1) + ' km' : '';
+    const durStr = routeInfo?.dur ? Math.round(routeInfo.dur / 60) + ' min' : '';
+    const name = 'Wheelchair route' + (distStr ? ' - ' + distStr : '') + (durStr ? ', ' + durStr : '');
+    let gpx = '<?xml version="1.0" encoding="UTF-8"?>
+';
+    gpx += '<gpx version="1.1" creator="WheelchairMap" xmlns="http://www.topografix.com/GPX/1/1">
+';
+    gpx += '  <metadata><name>' + name + '</name></metadata>
+';
+    gpx += '  <trk>
+    <name>' + name + '</name>
+    <trkseg>
+';
+    for (const cc of coords) { gpx += '      <trkpt lat="' + cc[1] + '" lon="' + cc[0] + '"></trkpt>
+'; }
+    gpx += '    </trkseg>
+  </trk>
+</gpx>
+';
+    return gpx;
+  }
+
+  const handleGpxExport = () => {
+    if (!route) return;
+    const gpx = generateGpx(route, routeInfo);
+    if (!gpx) return;
+    const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'wheelchair-route.gpx';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleShareUrl = () => {
+    if (!routeStart || !routeEnd) return;
+    const base = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams();
+    if (routeStart) params.set('start', routeStart[0] + ',' + routeStart[1]);
+    if (routeEnd) params.set('end', routeEnd[0] + ',' + routeEnd[1]);
+    params.set('profile', routeProfile);
+    params.set('city', city);
+    const shareUrl = base + '?' + params.toString();
+    navigator.clipboard.writeText(shareUrl).then(() => showToast(t('urlCopied', lang))).catch(() => showToast(t('urlCopied', lang)));
+  };
+
   function MapClickHandler() {
     useMapEvents({
       click: handleMapClick,
@@ -311,7 +456,7 @@ export default function MapView() {
 
   return (
     <div className="app">
-      <SearchBar onSelect={handleSearchSelect} />
+      <SearchBar onSelect={handleSearchSelect} lang={lang} />
 
       <Sidebar
         layers={layers} setLayers={setLayers}
@@ -324,13 +469,14 @@ export default function MapView() {
       />
 
       <div className="map-area">
-        <MapContainer center={PRAGUE_CENTER} zoom={15} style={{ width: '100%', height: '100%' }} ref={mapRef}>
+        <MapContainer center={CITIES[city]?.center || PRAGUE_CENTER} zoom={CITIES[city]?.zoom || 15} style={{ width: '100%', height: '100%' }} ref={mapRef}>
           <TileLayer attribution={TILE_ATTR} url={TILE_URL} />
           <DataLoader onMoveEnd={loadData} />
           <MapClickHandler />
           <FlyTo target={flyTarget} />
+          <CityFlyTo city={city} />
 
-          {layers.footways && <FootwayLayer data={footways} />}
+          {layers.footways && <FootwayLayer data={footways} lang={lang} />}
 
           {layers.pois && displayPois?.features?.map(f => (
             <Marker
@@ -338,7 +484,10 @@ export default function MapView() {
               position={[f.geometry.coordinates[1], f.geometry.coordinates[0]]}
               icon={createPoiIcon(f.properties.wheelchair, f.properties.category)}
             >
-              <Popup><div dangerouslySetInnerHTML={{ __html: buildPoiPopup(f.properties) }} /></Popup>
+              <Popup>
+              <div dangerouslySetInnerHTML={{ __html: buildPoiPopup(f.properties, lang) }} />
+              <button onClick={() => setShowRating(f)} style={{ marginTop: 4, padding: "3px 8px", background: "var(--primary)", color: "white", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>{t("rateBtn", lang)}</button>
+            </Popup>
             </Marker>
           ))}
 
@@ -401,10 +550,60 @@ export default function MapView() {
       </div>
 
       {showReport && reportPos && (
-        <ReportDialog position={reportPos} onSubmit={handleReportSubmit} onClose={() => setShowReport(false)} />
+        <ReportDialog position={reportPos} onSubmit={handleReportSubmit} onClose={() => setShowReport(false)} isOffline={isOffline} lang={lang} />
+      )}
+
+      
+      {showRating && (
+        <RatingDialog poi={showRating} onSubmit={handleRatingSubmit} onClose={() => setShowRating(null)} isOffline={isOffline} lang={lang} />
       )}
 
       {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+
+function RatingDialog({ poi, onSubmit, onClose, isOffline, lang }) {
+  const [rating, setRating] = useState(poi.properties?.wheelchair || "yes");
+  const [comment, setComment] = useState("");
+  const RATING_OPTIONS = [
+    { value: "yes", label: t("rateYes", lang), color: "#16a34a", desc: t("rateYesDesc", lang) },
+    { value: "limited", label: t("rateLimited", lang), color: "#ca8a04", desc: t("rateLimitedDesc", lang) },
+    { value: "no", label: t("rateNo", lang), color: "#dc2626", desc: t("rateNoDesc", lang) },
+  ];
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>{t("rateTitle", lang)}</h3>
+          <button className="btn-icon" onClick={onClose}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        {isOffline && <div style={{ background: "#fef9c3", border: "1px solid #ca8a04", borderRadius: 6, padding: "6px 10px", margin: "8px 0", color: "#a16207", fontSize: 12 }}>{t("rateOfflineNote", lang)}</div>}
+        <p style={{ fontSize: 14, fontWeight: 600, margin: "8px 0" }}>{poi.properties?.name || t("noName", lang)}</p>
+        <p className="text-muted text-sm" style={{ marginBottom: 8 }}>{getCategory(poi.properties?.category, lang)}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, margin: "8px 0" }}>
+          {RATING_OPTIONS.map(opt => (
+            <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+              background: rating === opt.value ? opt.color + "22" : "var(--surface)",
+              border: "2px solid " + (rating === opt.value ? opt.color : "var(--border)"),
+              borderRadius: 8, cursor: "pointer" }}>
+              <input type="radio" name="rating" value={opt.value} checked={rating === opt.value} onChange={() => setRating(opt.value)} style={{ width: "auto", margin: 0 }} />
+              <div>
+                <div style={{ color: opt.color, fontWeight: 600, fontSize: 13 }}>{opt.label}</div>
+                <div className="text-muted text-xs">{opt.desc}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+        <textarea className="form-input" placeholder={t("rateCommentPlaceholder", lang)} value={comment} onChange={e => setComment(e.target.value)} rows={2} />
+        <div className="modal-actions">
+          <button className="btn btn-primary" onClick={() => onSubmit({ poi_id: poi.id, wheelchair_rating: rating, comment: comment || null })}>{t("rateSubmit", lang)}</button>
+          <button className="btn btn-ghost" onClick={onClose}>{t("cancel", lang)}</button>
+        </div>
+      </div>
     </div>
   );
 }
