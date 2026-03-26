@@ -306,7 +306,7 @@ export default function MapView() {
     );
   };
 
-  const handleFindWc = async () => {
+  const handleFindWc = async (accessibleOnly = false) => {
     showToast(t('toastSearchingWc', lang));
     const getPos = () => new Promise((resolve, reject) => {
       if (userPos) return resolve(userPos);
@@ -319,7 +319,7 @@ export default function MapView() {
     try {
       const pos = await getPos();
       setUserPos(pos);
-      const data = await fetchNearestPois(pos[0], pos[1], 'toilets', null, 1);
+      const data = await fetchNearestPois(pos[0], pos[1], 'toilets', accessibleOnly ? 'yes' : null, 3);
       const wc = data?.features?.[0];
       if (!wc) { showToast(t('toastNoWcFound', lang)); return; }
 

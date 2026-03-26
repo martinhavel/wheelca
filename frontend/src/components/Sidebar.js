@@ -103,9 +103,13 @@ export default function Sidebar({
             </svg>
             {t('myLocation', lang)}
           </button>
-          <button className="btn btn-wc btn-block" onClick={onFindWc}>
+          <button className="btn btn-wc btn-block" onClick={() => onFindWc(false)}>
             <span style={{ fontSize: 16 }}>🚻</span>
             {t('nearestWc', lang)}
+          </button>
+          <button className="btn btn-wc-accessible btn-block" onClick={() => onFindWc(true)}>
+            <span style={{ fontSize: 16 }}>♿🚻</span>
+            {t('nearestAccessibleWc', lang)}
           </button>
         </div>
 

@@ -403,6 +403,8 @@ body {
 .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
 .btn-wc { background: #7c3aed; color: white; }
 .btn-wc:hover:not(:disabled) { background: #6d28d9; }
+.btn-wc-accessible { background: #059669; color: white; }
+.btn-wc-accessible:hover:not(:disabled) { background: #047857; }
 .btn-outline { background: none; border: 1.5px solid var(--border); color: var(--text); }
 .btn-outline:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
 .btn-ghost { background: none; border: none; color: var(--text-muted); }
