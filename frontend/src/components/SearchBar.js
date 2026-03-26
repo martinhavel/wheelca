@@ -2,9 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { searchNominatim } from '../lib/api';
-import { t } from '../lib/i18n';
 
-export default function SearchBar({ onSelect, lang }) {
+export default function SearchBar({ onSelect }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
@@ -52,7 +51,7 @@ export default function SearchBar({ onSelect, lang }) {
         </svg>
         <input
           type="text"
-          placeholder={t('searchPlaceholder', lang)}
+          placeholder="Hledat místo nebo adresu..."
           value={query}
           onChange={handleChange}
           onFocus={() => results.length && setOpen(true)}

@@ -61,10 +61,3 @@ export const BARRIER_TYPES = [
   { value: 'no_ramp', label: 'Chybí rampa' },
   { value: 'other', label: 'Jiné' }
 ];
-
-// Offline tile config (CARTO Voyager)
-export const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-export const TILE_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>';
-
-// Offline config
-export const OFFLINE_TILE_ZOOMS = [12, 13, 14, 15, 16];
