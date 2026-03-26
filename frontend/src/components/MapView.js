@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents, useMap }
 import { fetchPois, fetchFootways, fetchBarriers, fetchRoute, fetchNearestPois, reportBarrier, fetchStats, importOsmPois, importOsmFootways, importOsmToilets } from '../lib/api';
 import { PRAGUE_CENTER, WHEELCHAIR_COLORS, CATEGORY_ICONS, SCORE_COLORS, FILTER_GROUPS, BARRIER_TYPE_VALUES } from '../lib/constants';
 import { t, getLang, setLang, getCategory, getWheelchairLabel, getScoreLabel, getSurface, getSmoothness, getBarrierTypeLabel } from '../lib/i18n';
+import { CITIES } from '../lib/cities';
 import SearchBar from './SearchBar';
 import Sidebar from './Sidebar';
 import ReportDialog from './ReportDialog';
@@ -96,6 +97,18 @@ function FlyTo({ target }) {
   return null;
 }
 
+function CityFlyTo({ city }) {
+  const map = useMap();
+  const prevCity = useRef(city);
+  useEffect(() => {
+    if (city !== prevCity.current && CITIES[city]) {
+      prevCity.current = city;
+      map.flyTo(CITIES[city].center, CITIES[city].zoom, { duration: 1.5 });
+    }
+  }, [city, map]);
+  return null;
+}
+
 function buildPoiPopup(p, lang) {
   const tags = p.tags || {};
   const cat = getCategory(p.category, lang);
@@ -137,6 +150,7 @@ export default function MapView() {
   const [flyTarget, setFlyTarget] = useState(null);
   const [userPos, setUserPos] = useState(null);
   const [lang, setLangState] = useState(getLang());
+  const [city, setCity] = useState('prague');
   const mapRef = useRef(null);
   const lastImportRef = useRef(0);
 
@@ -334,14 +348,16 @@ export default function MapView() {
         onLocate={handleLocate} onFindWc={handleFindWc}
         sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
         lang={lang} onSetLang={handleSetLang}
+        city={city} onSetCity={setCity}
       />
 
       <div className="map-area">
-        <MapContainer center={PRAGUE_CENTER} zoom={15} style={{ width: '100%', height: '100%' }} ref={mapRef} doubleClickZoom={false}>
+        <MapContainer center={CITIES[city]?.center || PRAGUE_CENTER} zoom={CITIES[city]?.zoom || 15} style={{ width: '100%', height: '100%' }} ref={mapRef} doubleClickZoom={false}>
           <TileLayer attribution={TILE_ATTR} url={TILE_URL} />
           <DataLoader onMoveEnd={loadData} />
           <MapClickHandler />
           <FlyTo target={flyTarget} />
+          <CityFlyTo city={city} />
 
           {layers.footways && <FootwayLayer data={footways} lang={lang} />}
 

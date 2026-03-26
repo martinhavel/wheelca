@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { FILTER_GROUPS, WHEELCHAIR_COLORS, SCORE_COLORS } from '../lib/constants';
 import { t, SUPPORTED_LANGS, getWheelchairLabel, getScoreLabel, getFilterGroupLabel } from '../lib/i18n';
+import { CITIES } from '../lib/cities';
 
 function Section({ title, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -24,7 +25,7 @@ export default function Sidebar({
   layers, setLayers, activeFilters, setActiveFilters,
   stats, routeMode, setRouteMode, routeInfo, route, onClearRoute,
   loading, onImport, onLocate, onFindWc, sidebarOpen, setSidebarOpen,
-  lang, onSetLang
+  lang, onSetLang, city, onSetCity
 }) {
   return (
     <>
@@ -48,6 +49,19 @@ export default function Sidebar({
             <div className="brand-title">Wheelca</div>
             <div className="brand-subtitle">{t('title', lang)}</div>
           </div>
+        </div>
+
+        {/* City selector */}
+        <div className="lang-switcher" style={{ marginBottom: 6 }}>
+          {Object.entries(CITIES).map(([key, c]) => (
+            <button
+              key={key}
+              className={`lang-btn ${city === key ? 'lang-btn-active' : ''}`}
+              onClick={() => onSetCity(key)}
+            >
+              {c.name[lang] || c.name.cs}
+            </button>
+          ))}
         </div>
 
         {/* Language switcher */}
