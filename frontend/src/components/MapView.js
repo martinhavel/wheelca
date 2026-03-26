@@ -298,6 +298,11 @@ export default function MapView() {
   function MapClickHandler() {
     useMapEvents({
       click: handleMapClick,
+      dblclick: (e) => {
+        e.originalEvent.preventDefault();
+        setUserPos([e.latlng.lat, e.latlng.lng]);
+        showToast('Pozice nastavena');
+      },
       contextmenu: (e) => {
         e.originalEvent.preventDefault();
         setReportPos([e.latlng.lat, e.latlng.lng]);
@@ -324,7 +329,7 @@ export default function MapView() {
       />
 
       <div className="map-area">
-        <MapContainer center={PRAGUE_CENTER} zoom={15} style={{ width: '100%', height: '100%' }} ref={mapRef}>
+        <MapContainer center={PRAGUE_CENTER} zoom={15} style={{ width: '100%', height: '100%' }} ref={mapRef} doubleClickZoom={false}>
           <TileLayer attribution={TILE_ATTR} url={TILE_URL} />
           <DataLoader onMoveEnd={loadData} />
           <MapClickHandler />
