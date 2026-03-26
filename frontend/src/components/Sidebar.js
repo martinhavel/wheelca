@@ -25,7 +25,7 @@ export default function Sidebar({
   layers, setLayers, activeFilters, setActiveFilters,
   stats, routeMode, setRouteMode, routeInfo, route, onClearRoute,
   loading, onImport, onLocate, onFindWc, sidebarOpen, setSidebarOpen,
-  lang, onSetLang, city, onSetCity
+  lang, onSetLang, city, onSetCity, onGpxExport, onShareUrl
 }) {
   return (
     <>
@@ -210,7 +210,11 @@ export default function Sidebar({
                   ))}
                 </div>
               )}
-              <button className="btn btn-ghost btn-sm" onClick={onClearRoute}>{t('clearRoute', lang)}</button>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button className="btn btn-ghost btn-sm" onClick={onClearRoute}>{t('clearRoute', lang)}</button>
+                {onGpxExport && <button className="btn btn-ghost btn-sm" onClick={onGpxExport}>GPX</button>}
+                {onShareUrl && <button className="btn btn-ghost btn-sm" onClick={onShareUrl}>{t('shareUrl', lang)}</button>}
+              </div>
             </div>
           )}
         </Section>

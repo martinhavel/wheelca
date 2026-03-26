@@ -248,6 +248,39 @@ export default function MapView() {
     setRouteInfo(null); setRouteMode(null);
   };
 
+  const handleGpxExport = () => {
+    if (!route?.features?.[0]) return;
+    const coords = route.features[0].geometry?.coordinates || [];
+    const distStr = routeInfo?.dist ? (routeInfo.dist / 1000).toFixed(1) + ' km' : '';
+    const durStr = routeInfo?.dur ? Math.round(routeInfo.dur / 60) + ' min' : '';
+    const name = 'Wheelchair route' + (distStr ? ' - ' + distStr : '') + (durStr ? ', ' + durStr : '');
+    let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    gpx += `<gpx version="1.1" creator="WheelchairMap" xmlns="http://www.topografix.com/GPX/1/1">\n`;
+    gpx += `  <metadata><name>${name}</name></metadata>\n`;
+    gpx += `  <trk>\n    <name>${name}</name>\n    <trkseg>\n`;
+    for (const cc of coords) { gpx += `      <trkpt lat="${cc[1]}" lon="${cc[0]}"></trkpt>\n`; }
+    gpx += `    </trkseg>\n  </trk>\n</gpx>\n`;
+    const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'wheelca-route.gpx'; a.click();
+    URL.revokeObjectURL(url);
+    showToast(t('gpxExported', lang));
+  };
+
+  const handleShareUrl = () => {
+    if (!routeStart || !routeEnd) return;
+    const params = new URLSearchParams();
+    params.set('start', routeStart[0] + ',' + routeStart[1]);
+    params.set('end', routeEnd[0] + ',' + routeEnd[1]);
+    if (city !== 'prague') params.set('city', city);
+    const url = window.location.origin + '?' + params.toString();
+    navigator.clipboard.writeText(url).then(
+      () => showToast(t('urlCopied', lang)),
+      () => showToast(t('urlCopied', lang))
+    );
+  };
+
   const handleLocate = () => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
@@ -349,6 +382,7 @@ export default function MapView() {
         sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
         lang={lang} onSetLang={handleSetLang}
         city={city} onSetCity={setCity}
+        onGpxExport={handleGpxExport} onShareUrl={handleShareUrl}
       />
 
       <div className="map-area">

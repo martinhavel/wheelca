@@ -230,6 +230,7 @@ const translations = {
     // City & sharing
     selectCity: 'Město:',
     gpxExport: 'GPX',
+    gpxExported: 'GPX trasa stažena',
     shareUrl: 'Sdílet',
     urlCopied: 'URL zkopírováno do schránky',
 
@@ -462,6 +463,7 @@ const translations = {
 
     selectCity: 'City:',
     gpxExport: 'GPX',
+    gpxExported: 'GPX route downloaded',
     shareUrl: 'Share',
     urlCopied: 'URL copied to clipboard',
 
@@ -691,6 +693,7 @@ const translations = {
 
     selectCity: 'Stadt:',
     gpxExport: 'GPX',
+    gpxExported: 'GPX-Route heruntergeladen',
     shareUrl: 'Teilen',
     urlCopied: 'URL in Zwischenablage kopiert',
 
