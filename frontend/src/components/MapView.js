@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import { fetchPois, fetchFootways, fetchBarriers, fetchRoute, fetchNearestPois, reportBarrier, fetchStats, importOsmPois, importOsmFootways, importOsmToilets } from '../lib/api';
-import { PRAGUE_CENTER, WHEELCHAIR_COLORS, WHEELCHAIR_LABELS, CATEGORY_LABELS, CATEGORY_ICONS, SCORE_COLORS, SCORE_LABELS, SURFACE_LABELS, SMOOTHNESS_LABELS, FILTER_GROUPS, BARRIER_TYPES } from '../lib/constants';
+import { PRAGUE_CENTER, WHEELCHAIR_COLORS, CATEGORY_ICONS, SCORE_COLORS, FILTER_GROUPS, BARRIER_TYPE_VALUES } from '../lib/constants';
+import { t, getLang, setLang, getCategory, getWheelchairLabel, getScoreLabel, getSurface, getSmoothness, getBarrierTypeLabel } from '../lib/i18n';
 import SearchBar from './SearchBar';
 import Sidebar from './Sidebar';
 import ReportDialog from './ReportDialog';
@@ -45,7 +46,7 @@ function DataLoader({ onMoveEnd }) {
   return null;
 }
 
-function FootwayLayer({ data }) {
+function FootwayLayer({ data, lang }) {
   const map = useMap();
   const layerRef = useRef(null);
   useEffect(() => {
@@ -57,17 +58,17 @@ function FootwayLayer({ data }) {
         const p = f.properties;
         layer.bindPopup(`
           <div class="popup-card">
-            <div class="popup-title">Chodník</div>
-            <div class="popup-row"><span class="popup-label">Povrch</span><span>${SURFACE_LABELS[p.surface] || p.surface || '—'}</span></div>
-            <div class="popup-row"><span class="popup-label">Hladkost</span><span>${SMOOTHNESS_LABELS[p.smoothness] || p.smoothness || '—'}</span></div>
-            <div class="popup-row"><span class="popup-label">Sklon</span><span>${p.incline || '—'}</span></div>
-            <div class="popup-row"><span class="popup-label">Přístupnost</span><span style="color:${SCORE_COLORS[p.accessibility_score]}">${SCORE_LABELS[p.accessibility_score]}</span></div>
+            <div class="popup-title">${t('sidewalk', lang)}</div>
+            <div class="popup-row"><span class="popup-label">${t('surface', lang)}</span><span>${getSurface(p.surface, lang) || p.surface || '—'}</span></div>
+            <div class="popup-row"><span class="popup-label">${t('smoothness', lang)}</span><span>${getSmoothness(p.smoothness, lang) || p.smoothness || '—'}</span></div>
+            <div class="popup-row"><span class="popup-label">${t('slope', lang)}</span><span>${p.incline || '—'}</span></div>
+            <div class="popup-row"><span class="popup-label">${t('accessibility', lang)}</span><span style="color:${SCORE_COLORS[p.accessibility_score]}">${getScoreLabel(p.accessibility_score, lang)}</span></div>
           </div>
         `);
       }
     }).addTo(map);
     return () => { if (layerRef.current) map.removeLayer(layerRef.current); };
-  }, [data, map]);
+  }, [data, map, lang]);
   return null;
 }
 
@@ -95,16 +96,16 @@ function FlyTo({ target }) {
   return null;
 }
 
-function buildPoiPopup(p) {
+function buildPoiPopup(p, lang) {
   const tags = p.tags || {};
-  const cat = CATEGORY_LABELS[p.category] || p.category;
+  const cat = getCategory(p.category, lang);
   const wColor = WHEELCHAIR_COLORS[p.wheelchair] || '#9ca3af';
-  const wLabel = WHEELCHAIR_LABELS[p.wheelchair] || p.wheelchair;
+  const wLabel = getWheelchairLabel(p.wheelchair, lang);
   let extra = '';
   if (p.category === 'toilets') {
-    if (tags.fee) extra += `<div class="popup-row"><span class="popup-label">Poplatek</span><span>${tags.fee === 'yes' ? 'Ano' : 'Ne'}</span></div>`;
-    if (tags.opening_hours) extra += `<div class="popup-row"><span class="popup-label">Otevírací doba</span><span>${tags.opening_hours}</span></div>`;
-    if (tags.access) extra += `<div class="popup-row"><span class="popup-label">Přístup</span><span>${tags.access}</span></div>`;
+    if (tags.fee) extra += `<div class="popup-row"><span class="popup-label">${t('fee', lang)}</span><span>${tags.fee === 'yes' ? t('feeYes', lang) : t('feeNo', lang)}</span></div>`;
+    if (tags.opening_hours) extra += `<div class="popup-row"><span class="popup-label">${t('openingHours', lang)}</span><span>${tags.opening_hours}</span></div>`;
+    if (tags.access) extra += `<div class="popup-row"><span class="popup-label">${t('access', lang)}</span><span>${tags.access}</span></div>`;
   }
   return `
     <div class="popup-card">
@@ -135,8 +136,14 @@ export default function MapView() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
   const [userPos, setUserPos] = useState(null);
+  const [lang, setLangState] = useState(getLang());
   const mapRef = useRef(null);
   const lastImportRef = useRef(0);
+
+  const handleSetLang = (newLang) => {
+    setLang(newLang);
+    setLangState(newLang);
+  };
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
@@ -193,10 +200,10 @@ export default function MapView() {
       const [p, f, w] = await Promise.all([
         importOsmPois(bounds), importOsmFootways(bounds), importOsmToilets(bounds)
       ]);
-      showToast(`Načteno: ${(p?.imported||0)+(w?.imported||0)} míst, ${f?.imported||0} chodníků`);
+      showToast(`${t('toastImported', lang)} ${(p?.imported||0)+(w?.imported||0)} ${t('toastImportPlaces', lang)}, ${f?.imported||0} ${t('toastImportSidewalks', lang)}`);
       loadData(mapRef.current);
       fetchStats().then(setStats);
-    } catch { showToast('Chyba při importu'); }
+    } catch { showToast(t('toastImportError', lang)); }
     setLoading(false);
   };
 
@@ -204,14 +211,14 @@ export default function MapView() {
     if (routeMode === 'start') {
       setRouteStart([e.latlng.lng, e.latlng.lat]);
       setRouteMode('end');
-      showToast('Klikněte na cíl trasy');
+      showToast(t('toastClickEnd', lang));
     } else if (routeMode === 'end') {
       setRouteEnd([e.latlng.lng, e.latlng.lat]);
       setRouteMode(null);
-      showToast('Počítám trasu...');
+      showToast(t('toastCalculating', lang));
       const result = await fetchRoute(routeStart, [e.latlng.lng, e.latlng.lat]);
       if (result.error) {
-        showToast('Chyba: ' + result.error);
+        showToast(t('toastRouteError', lang) + result.error);
       } else {
         setRoute(result);
         const props = result.features?.[0]?.properties;
@@ -233,14 +240,14 @@ export default function MapView() {
         const ll = [pos.coords.latitude, pos.coords.longitude];
         setUserPos(ll);
         setFlyTarget(ll);
-        showToast('Poloha nalezena');
+        showToast(t('toastLocationFound', lang));
       },
-      () => showToast('Nepodařilo se zjistit polohu')
+      () => showToast(t('toastLocationError', lang))
     );
   };
 
   const handleFindWc = async () => {
-    showToast('Hledám nejbližší WC...');
+    showToast(t('toastSearchingWc', lang));
     const getPos = () => new Promise((resolve, reject) => {
       if (userPos) return resolve(userPos);
       navigator.geolocation?.getCurrentPosition(
@@ -254,12 +261,12 @@ export default function MapView() {
       setUserPos(pos);
       const data = await fetchNearestPois(pos[0], pos[1], 'toilets', null, 1);
       const wc = data?.features?.[0];
-      if (!wc) { showToast('Žádné WC v okolí nenalezeno'); return; }
+      if (!wc) { showToast(t('toastNoWcFound', lang)); return; }
 
       const coords = wc.geometry.coordinates;
       const dist = wc.properties.distance_m;
       const name = wc.properties.name || 'WC';
-      const wh = WHEELCHAIR_LABELS[wc.properties.wheelchair] || '';
+      const wh = getWheelchairLabel(wc.properties.wheelchair, lang);
       showToast(`${name} (${dist} m) — ${wh}`);
 
       // Route to it
@@ -278,7 +285,7 @@ export default function MapView() {
         setFlyTarget([coords[1], coords[0]]);
       }
     } catch {
-      showToast('Zapněte polohu pro nalezení WC');
+      showToast(t('toastEnableLocation', lang));
     }
   };
 
@@ -289,7 +296,7 @@ export default function MapView() {
   const handleReportSubmit = async (data) => {
     const result = await reportBarrier({ ...data, lat: reportPos[0], lng: reportPos[1] });
     if (result.id) {
-      showToast('Bariéra nahlášena');
+      showToast(t('toastBarrierReported', lang));
       setShowReport(false);
       if (mapRef.current) loadData(mapRef.current);
     }
@@ -301,7 +308,7 @@ export default function MapView() {
       dblclick: (e) => {
         e.originalEvent.preventDefault();
         setUserPos([e.latlng.lat, e.latlng.lng]);
-        showToast('Pozice nastavena');
+        showToast(t('toastPositionSet', lang));
       },
       contextmenu: (e) => {
         e.originalEvent.preventDefault();
@@ -316,7 +323,7 @@ export default function MapView() {
 
   return (
     <div className="app">
-      <SearchBar onSelect={handleSearchSelect} />
+      <SearchBar onSelect={handleSearchSelect} lang={lang} />
 
       <Sidebar
         layers={layers} setLayers={setLayers}
@@ -326,6 +333,7 @@ export default function MapView() {
         loading={loading} onImport={handleImport}
         onLocate={handleLocate} onFindWc={handleFindWc}
         sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
+        lang={lang} onSetLang={handleSetLang}
       />
 
       <div className="map-area">
@@ -335,7 +343,7 @@ export default function MapView() {
           <MapClickHandler />
           <FlyTo target={flyTarget} />
 
-          {layers.footways && <FootwayLayer data={footways} />}
+          {layers.footways && <FootwayLayer data={footways} lang={lang} />}
 
           {layers.pois && displayPois?.features?.map(f => (
             <Marker
@@ -343,7 +351,7 @@ export default function MapView() {
               position={[f.geometry.coordinates[1], f.geometry.coordinates[0]]}
               icon={createPoiIcon(f.properties.wheelchair, f.properties.category)}
             >
-              <Popup><div dangerouslySetInnerHTML={{ __html: buildPoiPopup(f.properties) }} /></Popup>
+              <Popup><div dangerouslySetInnerHTML={{ __html: buildPoiPopup(f.properties, lang) }} /></Popup>
             </Marker>
           ))}
 
@@ -355,10 +363,10 @@ export default function MapView() {
             >
               <Popup>
                 <div className="popup-card">
-                  <div className="popup-title">{BARRIER_TYPES.find(b => b.value === f.properties.barrier_type)?.label || 'Bariéra'}</div>
+                  <div className="popup-title">{getBarrierTypeLabel(f.properties.barrier_type, lang) || t('barrier', lang)}</div>
                   {f.properties.description && <p>{f.properties.description}</p>}
                   <div className="popup-row">
-                    <span className="popup-label">Závažnost</span>
+                    <span className="popup-label">{t('severity', lang)}</span>
                     <span>{'●'.repeat(f.properties.severity)}{'○'.repeat(3 - f.properties.severity)}</span>
                   </div>
                 </div>
@@ -389,24 +397,24 @@ export default function MapView() {
 
         {/* Floating map buttons */}
         <div className="map-fab-group">
-          <button className="map-fab" onClick={handleLocate} title="Moje poloha">
+          <button className="map-fab" onClick={handleLocate} title={t('myLocation', lang)}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2"/>
             </svg>
           </button>
-          <button className="map-fab map-fab-wc" onClick={handleFindWc} title="Nejbližší WC">
+          <button className="map-fab map-fab-wc" onClick={handleFindWc} title={t('nearestWc', lang)}>
             <span style={{ fontSize: 18 }}>🚻</span>
           </button>
         </div>
 
         {/* Zoom info */}
         {mapRef.current && mapRef.current.getZoom && mapRef.current.getZoom() < 14 && (
-          <div className="zoom-hint">Přibližte mapu pro zobrazení dat</div>
+          <div className="zoom-hint">{t('zoomHint', lang)}</div>
         )}
       </div>
 
       {showReport && reportPos && (
-        <ReportDialog position={reportPos} onSubmit={handleReportSubmit} onClose={() => setShowReport(false)} />
+        <ReportDialog position={reportPos} onSubmit={handleReportSubmit} onClose={() => setShowReport(false)} lang={lang} />
       )}
 
       {toast && <div className="toast">{toast}</div>}
