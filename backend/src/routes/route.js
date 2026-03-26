@@ -86,7 +86,7 @@ export async function routeRoutes(app) {
           }],
           way_points: [0, route.geometry.coordinates.length - 1],
           engine: 'osrm-foot',
-          warning: 'Pesi trasa (bez wheelchair profilu). Pro presnejsi bezbarierovy routing nastavte ORS_API_KEY.'
+          warning: 'foot-fallback'
         }
       }],
       metadata: { engine: 'osrm', profile: 'foot' }

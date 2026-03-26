@@ -197,7 +197,7 @@ export default function Sidebar({
                   <span className="route-stat-unit">min</span>
                 </div>
               </div>
-              {routeInfo.warning && <p className="text-yellow text-sm">{routeInfo.warning}</p>}
+              {routeInfo.warning && <p className="text-yellow text-sm">{routeInfo.warning === 'foot-fallback' ? t('routeFootFallback', lang) : routeInfo.warning}</p>}
               {routeInfo.steps && (
                 <div className="route-steps">
                   {routeInfo.steps.map((s, i) => (

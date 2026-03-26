@@ -59,6 +59,7 @@ const translations = {
     pctBad: '% špatné',
     pctUnknown: '% neznámé',
     clearRoute: 'Zrušit trasu',
+    routeFootFallback: 'Pěší trasa — bezbariérový profil není k dispozici',
 
     // Import
     importTitle: 'Data',
@@ -309,6 +310,7 @@ const translations = {
     pctBad: '% bad',
     pctUnknown: '% unknown',
     clearRoute: 'Clear route',
+    routeFootFallback: 'Walking route — wheelchair profile not available',
 
     importTitle: 'Data',
     importBtn: 'Load data from OSM',
@@ -541,6 +543,7 @@ const translations = {
     pctBad: '% schlecht',
     pctUnknown: '% unbekannt',
     clearRoute: 'Route loeschen',
+    routeFootFallback: 'Fussweg — Rollstuhlprofil nicht verfügbar',
 
     importTitle: 'Daten',
     importBtn: 'Daten von OSM laden',
