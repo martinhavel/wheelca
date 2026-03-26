@@ -650,6 +650,54 @@ input[type="range"] { width: 100%; accent-color: var(--primary); }
   border-radius: 4px !important;
 }
 
+/* === Offline Indicator === */
+.offline-badge {
+  position: absolute;
+  top: 16px;
+  right: 70px;
+  z-index: 1100;
+  background: var(--red);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: var(--shadow);
+  animation: pulse-offline 2s ease-in-out infinite;
+}
+@keyframes pulse-offline {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.online-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+.online-indicator.offline {
+  background: #fef2f2;
+  color: var(--red);
+  border: 1px solid #fecaca;
+}
+.online-indicator.online {
+  background: #f0fdf4;
+  color: var(--green);
+  border: 1px solid #bbf7d0;
+}
+
+/* === Offline Manager === */
+.offline-manager h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
   .sidebar {

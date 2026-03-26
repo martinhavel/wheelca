@@ -87,6 +87,29 @@ export async function importOsmToilets(bounds) {
   return res.json();
 }
 
+export async function submitRating(data) {
+  const res = await fetch(`${API}/api/ratings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+export async function submitRatingsBatch(ratings) {
+  const res = await fetch(`${API}/api/ratings/batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ratings })
+  });
+  return res.json();
+}
+
+export async function fetchDelta(since, city = 'prague') {
+  const res = await fetch(`${API}/api/export/${city}/delta?since=${encodeURIComponent(since)}`);
+  return res.json();
+}
+
 export async function searchNominatim(query) {
   const params = new URLSearchParams({
     q: query, format: 'json', countrycodes: 'cz', limit: '6',

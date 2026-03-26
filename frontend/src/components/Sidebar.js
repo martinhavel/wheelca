@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FILTER_GROUPS, WHEELCHAIR_COLORS, SCORE_COLORS } from '../lib/constants';
 import { t, SUPPORTED_LANGS, getWheelchairLabel, getScoreLabel, getFilterGroupLabel } from '../lib/i18n';
 import { CITIES } from '../lib/cities';
+import OfflineManager from './OfflineManager';
 
 function Section({ title, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -25,7 +26,8 @@ export default function Sidebar({
   layers, setLayers, activeFilters, setActiveFilters,
   stats, routeMode, setRouteMode, routeInfo, route, onClearRoute,
   loading, onImport, onLocate, onFindWc, sidebarOpen, setSidebarOpen,
-  lang, onSetLang, city, onSetCity, onGpxExport, onShareUrl
+  lang, onSetLang, city, onSetCity, onGpxExport, onShareUrl,
+  isOnline
 }) {
   return (
     <>
@@ -256,7 +258,21 @@ export default function Sidebar({
           </p>
         </Section>
 
+        {/* Offline */}
+        <Section title={t('offlineData', lang)} defaultOpen={false}>
+          <OfflineManager
+            lang={lang}
+            city={city}
+            onCityChange={onSetCity}
+          />
+        </Section>
+
         <div className="sidebar-footer">
+          {!isOnline && (
+            <span className="online-indicator offline">
+              {t('offlineLabel', lang)}
+            </span>
+          )}
           Data © <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap</a>
         </div>
       </div>

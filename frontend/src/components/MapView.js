@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
-import { fetchPois, fetchFootways, fetchBarriers, fetchRoute, fetchNearestPois, reportBarrier, fetchStats, importOsmPois, importOsmFootways, importOsmToilets } from '../lib/api';
+import { fetchPois, fetchFootways, fetchBarriers, fetchRoute, fetchNearestPois, reportBarrier, submitRating, fetchStats, importOsmPois, importOsmFootways, importOsmToilets } from '../lib/api';
 import { PRAGUE_CENTER, WHEELCHAIR_COLORS, CATEGORY_ICONS, SCORE_COLORS, FILTER_GROUPS, BARRIER_TYPE_VALUES } from '../lib/constants';
 import { t, getLang, setLang, getCategory, getWheelchairLabel, getScoreLabel, getSurface, getSmoothness, getBarrierTypeLabel } from '../lib/i18n';
 import { CITIES } from '../lib/cities';
+import { getFeatures, filterByBounds, savePendingBarrier, getPendingBarriers, clearPendingBarriers, savePendingRating, getOfflineStatus } from '../lib/offlineStorage';
+import { buildGraph, findRoute as offlineRoute, PROFILES as ROUTE_PROFILES } from '../lib/offlineRouter';
 import SearchBar from './SearchBar';
 import Sidebar from './Sidebar';
 import ReportDialog from './ReportDialog';
@@ -153,8 +155,12 @@ export default function MapView() {
   const [lang, setLangState] = useState(getLang());
   const [city, setCity] = useState('prague');
   const [showRating, setShowRating] = useState(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [offlineData, setOfflineData] = useState(null);
+  const [routeProfile, setRouteProfile] = useState('accessible');
   const mapRef = useRef(null);
   const lastImportRef = useRef(0);
+  const graphRef = useRef(null);
 
   const handleSetLang = (newLang) => {
     setLang(newLang);
@@ -162,6 +168,41 @@ export default function MapView() {
   };
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
+
+  // Online/offline detection
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
+  }, []);
+
+  // Load offline data from IndexedDB when offline
+  useEffect(() => {
+    if (!isOnline) {
+      (async () => {
+        try {
+          const status = await getOfflineStatus();
+          if (status.hasData) {
+            const [poisData, footwaysData, barriersData] = await Promise.all([
+              getFeatures('pois'), getFeatures('footways'), getFeatures('barriers')
+            ]);
+            setOfflineData({ pois: poisData, footways: footwaysData, barriers: barriersData });
+            // Build routing graph
+            if (footwaysData.length > 0 && !graphRef.current) {
+              showToast(t('toastBuildingGraph', lang));
+              graphRef.current = buildGraph(footwaysData);
+            }
+            showToast(t('toastOfflineCache', lang));
+          } else {
+            showToast(t('toastNoOfflineData', lang));
+          }
+        } catch { showToast(t('toastLoadError', lang)); }
+      })();
+    }
+  }, [isOnline]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchStats().then(setStats).catch(() => {}); }, []);
 
@@ -179,6 +220,23 @@ export default function MapView() {
   const loadData = useCallback(async (map) => {
     if (map.getZoom() < 14) return;
     const bounds = map.getBounds();
+
+    // Offline mode: load from IndexedDB
+    if (!isOnline && offlineData) {
+      if (layers.pois) {
+        const filtered = filterByBounds(offlineData.pois, bounds);
+        setPois({ type: 'FeatureCollection', features: filtered });
+      }
+      if (layers.footways) {
+        const filtered = filterByBounds(offlineData.footways, bounds);
+        setFootways({ type: 'FeatureCollection', features: filtered });
+      }
+      if (layers.barriers) {
+        const filtered = filterByBounds(offlineData.barriers, bounds);
+        setBarriers({ type: 'FeatureCollection', features: filtered });
+      }
+      return;
+    }
 
     const [poisData, footwaysData, barriersData] = await Promise.all([
       layers.pois ? fetchPois(bounds) : null,
@@ -206,7 +264,7 @@ export default function MapView() {
         fetchStats().then(setStats);
       }
     } catch {}
-  }, [layers]);
+  }, [layers, isOnline, offlineData]);
 
   const handleImport = async () => {
     if (!mapRef.current) return;
@@ -229,10 +287,33 @@ export default function MapView() {
       setRouteMode('end');
       showToast(t('toastClickEnd', lang));
     } else if (routeMode === 'end') {
-      setRouteEnd([e.latlng.lng, e.latlng.lat]);
+      const endCoords = [e.latlng.lng, e.latlng.lat];
+      setRouteEnd(endCoords);
       setRouteMode(null);
       showToast(t('toastCalculating', lang));
-      const result = await fetchRoute(routeStart, [e.latlng.lng, e.latlng.lat]);
+
+      // Offline routing
+      if (!isOnline) {
+        if (!graphRef.current) {
+          showToast(t('toastNoOfflineData', lang));
+          return;
+        }
+        const result = offlineRoute(graphRef.current, routeStart[0], routeStart[1], endCoords[0], endCoords[1], routeProfile);
+        if (result.error) {
+          showToast(result.error);
+        } else {
+          setRoute(result);
+          const props = result.features?.[0]?.properties;
+          const dist = props?.summary?.distance;
+          const dur = props?.summary?.duration;
+          setRouteInfo({ dist, dur, engine: props?.engine || 'offline', warning: props?.warning, steps: props?.segments?.[0]?.steps });
+          showToast(`${t('toastOfflineRouteLabel', lang)} ${(dist/1000).toFixed(1)} km, ${Math.round(dur/60)} min`);
+        }
+        return;
+      }
+
+      // Online routing
+      const result = await fetchRoute(routeStart, endCoords);
       if (result.error) {
         showToast(t('toastRouteError', lang) + result.error);
       } else {
@@ -284,6 +365,12 @@ export default function MapView() {
   };
 
   const handleRatingSubmit = async (data) => {
+    if (!isOnline) {
+      await savePendingRating(data);
+      showToast(t('toastRatingOffline', lang));
+      setShowRating(null);
+      return;
+    }
     try {
       await submitRating(data);
       showToast(t('rateSuccess', lang));
@@ -354,7 +441,14 @@ export default function MapView() {
   };
 
   const handleReportSubmit = async (data) => {
-    const result = await reportBarrier({ ...data, lat: reportPos[0], lng: reportPos[1] });
+    const payload = { ...data, lat: reportPos[0], lng: reportPos[1] };
+    if (!isOnline) {
+      await savePendingBarrier(payload);
+      showToast(t('toastBarrierOffline', lang));
+      setShowReport(false);
+      return;
+    }
+    const result = await reportBarrier(payload);
     if (result.id) {
       showToast(t('toastBarrierReported', lang));
       setShowReport(false);
@@ -396,6 +490,7 @@ export default function MapView() {
         lang={lang} onSetLang={handleSetLang}
         city={city} onSetCity={setCity}
         onGpxExport={handleGpxExport} onShareUrl={handleShareUrl}
+        isOnline={isOnline}
       />
 
       <div className="map-area">
@@ -470,6 +565,11 @@ export default function MapView() {
             <span style={{ fontSize: 18 }}>🚻</span>
           </button>
         </div>
+
+        {/* Online/Offline indicator */}
+        {!isOnline && (
+          <div className="offline-badge">{t('offline', lang)}</div>
+        )}
 
         {/* Zoom info */}
         {mapRef.current && mapRef.current.getZoom && mapRef.current.getZoom() < 14 && (
