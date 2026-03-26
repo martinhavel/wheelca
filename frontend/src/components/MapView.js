@@ -10,6 +10,7 @@ import { CITIES } from '../lib/cities';
 import SearchBar from './SearchBar';
 import Sidebar from './Sidebar';
 import ReportDialog from './ReportDialog';
+import RatingDialog from './RatingDialog';
 
 const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
@@ -151,6 +152,7 @@ export default function MapView() {
   const [userPos, setUserPos] = useState(null);
   const [lang, setLangState] = useState(getLang());
   const [city, setCity] = useState('prague');
+  const [showRating, setShowRating] = useState(null);
   const mapRef = useRef(null);
   const lastImportRef = useRef(0);
 
@@ -281,6 +283,17 @@ export default function MapView() {
     );
   };
 
+  const handleRatingSubmit = async (data) => {
+    try {
+      await submitRating(data);
+      showToast(t('rateSuccess', lang));
+      setShowRating(null);
+      if (mapRef.current) loadData(mapRef.current);
+    } catch {
+      showToast(t('rateError', lang));
+    }
+  };
+
   const handleLocate = () => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
@@ -400,6 +413,7 @@ export default function MapView() {
               key={f.id}
               position={[f.geometry.coordinates[1], f.geometry.coordinates[0]]}
               icon={createPoiIcon(f.properties.wheelchair, f.properties.category)}
+              eventHandlers={{ dblclick: () => setShowRating(f) }}
             >
               <Popup><div dangerouslySetInnerHTML={{ __html: buildPoiPopup(f.properties, lang) }} /></Popup>
             </Marker>
@@ -465,6 +479,10 @@ export default function MapView() {
 
       {showReport && reportPos && (
         <ReportDialog position={reportPos} onSubmit={handleReportSubmit} onClose={() => setShowReport(false)} lang={lang} />
+      )}
+
+      {showRating && (
+        <RatingDialog poi={showRating} onSubmit={handleRatingSubmit} onClose={() => setShowRating(null)} lang={lang} />
       )}
 
       {toast && <div className="toast">{toast}</div>}

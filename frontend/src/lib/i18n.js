@@ -220,6 +220,8 @@ const translations = {
     rateLimitedDesc: 'Částečně přístupné, menší překážky',
     rateNo: 'Nepřístupné',
     rateNoDesc: 'Schody, úzký vstup, bez rampy',
+    rateSuccess: 'Hodnocení odesláno',
+    rateError: 'Chyba při odesílání hodnocení',
 
     // Score labels
     scoreUnknown: 'Neznámý',
@@ -455,6 +457,8 @@ const translations = {
     rateLimitedDesc: 'Partially accessible, minor obstacles',
     rateNo: 'Inaccessible',
     rateNoDesc: 'Steps, narrow entrance, no ramp',
+    rateSuccess: 'Rating submitted',
+    rateError: 'Error submitting rating',
 
     scoreUnknown: 'Unknown',
     scoreGood: 'Accessible',
@@ -685,6 +689,8 @@ const translations = {
     rateLimitedDesc: 'Teilweise barrierefrei, kleinere Hindernisse',
     rateNo: 'Nicht barrierefrei',
     rateNoDesc: 'Treppen, enger Eingang, keine Rampe',
+    rateSuccess: 'Bewertung gesendet',
+    rateError: 'Fehler beim Senden der Bewertung',
 
     scoreUnknown: 'Unbekannt',
     scoreGood: 'Barrierefrei',
