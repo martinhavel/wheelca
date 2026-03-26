@@ -211,6 +211,7 @@ body {
 /* Quick Actions */
 .quick-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 0 20px 12px;
 }
@@ -409,7 +410,7 @@ body {
 .btn-outline:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
 .btn-ghost { background: none; border: none; color: var(--text-muted); }
 .btn-ghost:hover { color: var(--red); }
-.btn-block { flex: 1; }
+.btn-block { flex: 1 1 auto; min-width: 0; }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 4px; }
 .btn-icon:hover { color: var(--text); }

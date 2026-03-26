@@ -97,19 +97,17 @@ export default function Sidebar({
 
         {/* Quick actions */}
         <div className="quick-actions">
-          <button className="btn btn-primary btn-block" onClick={onLocate}>
+          <button className="btn btn-primary btn-block" onClick={onLocate} style={{ flex: '1 1 100%' }}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2"/>
             </svg>
             {t('myLocation', lang)}
           </button>
           <button className="btn btn-wc btn-block" onClick={() => onFindWc(false)}>
-            <span style={{ fontSize: 16 }}>🚻</span>
-            {t('nearestWc', lang)}
+            🚻 {t('nearestWc', lang)}
           </button>
           <button className="btn btn-wc-accessible btn-block" onClick={() => onFindWc(true)}>
-            <span style={{ fontSize: 16 }}>♿🚻</span>
-            {t('nearestAccessibleWc', lang)}
+            ♿ {t('nearestAccessibleWc', lang)}
           </button>
         </div>
 
