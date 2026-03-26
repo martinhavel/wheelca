@@ -397,22 +397,12 @@ export default function MapView() {
     const distStr = routeInfo?.dist ? (routeInfo.dist / 1000).toFixed(1) + ' km' : '';
     const durStr = routeInfo?.dur ? Math.round(routeInfo.dur / 60) + ' min' : '';
     const name = 'Wheelchair route' + (distStr ? ' - ' + distStr : '') + (durStr ? ', ' + durStr : '');
-    let gpx = '<?xml version="1.0" encoding="UTF-8"?>
-';
-    gpx += '<gpx version="1.1" creator="WheelchairMap" xmlns="http://www.topografix.com/GPX/1/1">
-';
-    gpx += '  <metadata><name>' + name + '</name></metadata>
-';
-    gpx += '  <trk>
-    <name>' + name + '</name>
-    <trkseg>
-';
-    for (const cc of coords) { gpx += '      <trkpt lat="' + cc[1] + '" lon="' + cc[0] + '"></trkpt>
-'; }
-    gpx += '    </trkseg>
-  </trk>
-</gpx>
-';
+    let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    gpx += `<gpx version="1.1" creator="WheelchairMap" xmlns="http://www.topografix.com/GPX/1/1">\n`;
+    gpx += `  <metadata><name>${name}</name></metadata>\n`;
+    gpx += `  <trk>\n    <name>${name}</name>\n    <trkseg>\n`;
+    for (const cc of coords) { gpx += `      <trkpt lat="${cc[1]}" lon="${cc[0]}"></trkpt>\n`; }
+    gpx += `    </trkseg>\n  </trk>\n</gpx>\n`;
     return gpx;
   }
 
