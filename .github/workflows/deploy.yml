@@ -1,0 +1,85 @@
+name: Deploy Wheelca
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: https://api-stage-wheelca.mhai.app
+        run: npm run build
+
+  deploy-staging:
+    name: Deploy to Staging (RPi5)
+    needs: test
+    runs-on: [self-hosted, raspi5]
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync code to compose directory
+        run: |
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.env' \
+            --exclude='node_modules' \
+            --exclude='.github' \
+            ./ /opt/docker/compose/wheelchair-map/
+
+      - name: Build and restart containers
+        working-directory: /opt/docker/compose/wheelchair-map
+        run: |
+          docker compose build --no-cache backend frontend
+          docker compose up -d --force-recreate backend frontend
+          echo "Staging deploy complete: $(date)"
+
+  deploy-production:
+    name: Deploy to Production (Hetzner)
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync code to Hetzner VPS
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --delete --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='.github'
+          path: ./
+          remote_path: /opt/docker/compose/wheelchair-map/
+          remote_host: ${{ secrets.PRODUCTION_HOST }}
+          remote_user: martin
+          remote_key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Build and restart containers
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: martin
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/docker/compose/wheelchair-map
+            docker compose build --no-cache backend frontend
+            docker compose up -d --force-recreate backend frontend
+            echo "Production deploy complete: $(date)"
