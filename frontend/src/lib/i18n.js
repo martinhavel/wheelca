@@ -25,26 +25,23 @@ const translations = {
     helpOffline: 'Offline data - stáhni si Prahu pro použití bez internetu',
 
     // Stats
-    statAccessible: 'přístupných',
+    statAccessible: 'Přístupných',
     statBarriers: 'Bariér',
-    statFootways: 'chodníků',
+    statFootways: 'Chodníků',
     statTotal: 'Celkem míst',
-    statWc: 'WC',
 
     // Layers
     layers: 'Vrstvy',
-    layerPois: 'Místa a budovy',
-    layerFootways: 'Chodníky',
-    layerBarriers: 'Bariéry',
+    layerPois: 'Budovy a místa',
+    layerFootways: 'Chodníky a cesty',
+    layerBarriers: 'Bariéry (hlášení)',
 
     // Navigation
     navigation: 'Navigace',
-    findRoute: 'Naplánovat trasu',
+    findRoute: 'Najdi trasu',
     cancel: 'Zrušit',
-    clickStart: 'Klikněte na mapu — výchozí bod',
-    clickEnd: 'Klikněte na mapu — cíl',
-    startPoint: 'výchozí bod',
-    destination: 'cíl',
+    clickStart: 'Klikni na mapu pro START trasy',
+    clickEnd: 'Klikni na mapu pro CÍL trasy',
     server: 'Server',
     rightClickHint: 'Pravý klik na mapu = nahlásit bariéru',
 
@@ -52,25 +49,22 @@ const translations = {
     offlineRoute: 'Offline trasa',
     mostAccessible: 'nejpřístupnější',
     shortestRoute: 'nejkratší',
-    wheelchairRoute: 'Bezbariérová trasa',
-    footRoute: 'Pěší trasa (bez wheelchair dat)',
+    wheelchairRoute: 'Bezbariérová trasa - vyhýbá se schodům a špatným povrchům',
+    footRoute: 'Pěší trasa - nelze ověřit bezbariérovost (chybí wheelchair profil)',
     pctAccessible: '% přístupné',
     pctLimited: '% omezené',
     pctBad: '% špatné',
     pctUnknown: '% neznámé',
-    clearRoute: 'Zrušit trasu',
-    routeFootFallback: 'Pěší trasa — bezbariérový profil není k dispozici',
-    nearestAccessibleWc: 'Bezbariérové WC',
 
     // Import
-    importTitle: 'Data',
-    importBtn: 'Načíst data z OSM',
+    importTitle: 'Načíst místa a chodníky',
+    importBtn: 'Načíst data pro tuto oblast',
     importing: 'Načítám...',
-    importDesc: 'Importuje místa, chodníky a WC z OpenStreetMap pro zobrazený výřez. Přibližte mapu (zoom 14+).',
+    importDesc: 'Stáhne budovy, obchody, chodníky a další místa v zobrazeném výřezu.',
 
     // Toasts
     toastClickStart: 'Klikni na start trasy',
-    toastClickEnd: 'Klikněte na cíl trasy',
+    toastClickEnd: 'Klikni na cíl trasy',
     toastCalculating: 'Počítám trasu...',
     toastOfflineNoRoute: 'Routing není dostupný offline',
     toastBuildingGraph: 'Stavím graf...',
@@ -81,7 +75,7 @@ const translations = {
     toastSidewalks: 'chodníků',
     toastOfflineCache: 'Offline režim - data z cache',
     toastLoadError: 'Nepodařilo se načíst data',
-    toastBarrierReported: 'Bariéra nahlášena',
+    toastBarrierReported: 'Bariéra nahlášena!',
     toastBarrierOffline: 'Bariéra uložena offline - synchronizuje se po připojení',
     toastRatingSent: 'Hodnocení odesláno!',
     toastRatingOffline: 'Hodnocení uloženo offline - synchronizuje se po připojení',
@@ -90,29 +84,13 @@ const translations = {
     toastOfflineRouteLabel: 'Offline trasa:',
     toastFootRouteLabel: 'Pěší trasa:',
     toastWheelchairRouteLabel: 'Bezbariérová trasa:',
-    toastImported: 'Načteno:',
-    toastImportPlaces: 'míst',
-    toastImportSidewalks: 'chodníků',
-    toastImportError: 'Chyba při importu',
-    toastLocationFound: 'Poloha nalezena',
-    toastLocationError: 'Nepodařilo se zjistit polohu',
-    toastPositionSet: 'Pozice nastavena',
-    toastSearchingWc: 'Hledám nejbližší WC...',
-    toastNoWcFound: 'Žádné WC v okolí nenalezeno',
-    toastEnableLocation: 'Zapněte polohu pro nalezení WC',
-    toastRouteError: 'Chyba: ',
 
     // Report dialog
     reportTitle: 'Nahlásit bariéru',
     reportOfflineNote: 'Offline - bariéra se uloží lokálně a synchronizuje po připojení',
     reportPosition: 'Pozice:',
-    reportDescPlaceholder: 'Volitelný popis...',
+    reportDescPlaceholder: 'Popis bariéry...',
     reportSeverity: 'Závažnost:',
-    reportSeverityMild: 'Mírná',
-    reportSeverityMedium: 'Střední',
-    reportSeverityBlocking: 'Blokující',
-    reportBarrierType: 'Typ bariéry',
-    reportDescription: 'Popis',
     reportSubmit: 'Odeslat',
 
     // Rating dialog
@@ -129,35 +107,9 @@ const translations = {
     smoothness: 'Hladkost',
     slope: 'Sklon',
     accessibility: 'Přístupnost',
-    severity: 'Závažnost',
+    severity: 'Závažnost:',
     verified: 'Ověřeno',
     unverified: 'Neověřeno',
-    fee: 'Poplatek',
-    feeYes: 'Ano',
-    feeNo: 'Ne',
-    openingHours: 'Otevírací doba',
-    access: 'Přístup',
-    barrier: 'Bariéra',
-
-    // Quick actions
-    myLocation: 'Moje poloha',
-    nearestWc: 'Nejbližší WC',
-
-    // Filter
-    filterCategories: 'Filtr kategorií',
-    filterAll: 'Vše',
-    filterFood: 'Jídlo',
-    filterShops: 'Obchody',
-    filterHealth: 'Zdraví',
-    filterCulture: 'Kultura',
-
-    // Legend
-    legend: 'Legenda',
-    legendPlaces: 'Místa',
-    legendSidewalks: 'Chodníky',
-
-    // Zoom hint
-    zoomHint: 'Přibližte mapu pro zobrazení dat',
 
     // Offline manager
     offlineData: 'Offline data',
@@ -210,7 +162,7 @@ const translations = {
     barrierOther: 'Jiné',
 
     // Wheelchair
-    wheelchairYes: 'Bezbariérové',
+    wheelchairYes: 'Přístupné',
     wheelchairLimited: 'Omezeně přístupné',
     wheelchairNo: 'Nepřístupné',
     wheelchairUnknown: 'Neznámé',
@@ -222,24 +174,21 @@ const translations = {
     rateLimitedDesc: 'Částečně přístupné, menší překážky',
     rateNo: 'Nepřístupné',
     rateNoDesc: 'Schody, úzký vstup, bez rampy',
-    rateSuccess: 'Hodnocení odesláno',
-    rateError: 'Chyba při odesílání hodnocení',
 
     // Score labels
     scoreUnknown: 'Neznámý',
     scoreGood: 'Přístupný',
-    scoreLimited: 'Omezeně',
+    scoreLimited: 'Omezené',
     scoreBad: 'Nepřístupný',
 
     // City & sharing
     selectCity: 'Město:',
     gpxExport: 'GPX',
-    gpxExported: 'GPX trasa stažena',
     shareUrl: 'Sdílet',
     urlCopied: 'URL zkopírováno do schránky',
 
     // Search & geo
-    searchPlaceholder: 'Hledat místo nebo adresu...',
+    searchPlaceholder: 'Hledat adresu nebo místo...',
     searchBtn: 'Hledat',
     searchNoResults: 'Nic nenalezeno',
     searchError: 'Chyba vyhledávání',
@@ -248,12 +197,33 @@ const translations = {
     geoError: 'Nepodařilo se zjistit polohu',
     geoNotSupported: 'Geolokace není podporována',
 
+    // WC
+    wcNearest: 'Nejbližší WC',
+    wcFinding: 'Hledám nejbližší WC...',
+    wcNotFound: 'Žádné WC v okolí',
+    wcFilter: 'Jen WC',
+    wcFee: 'Poplatek',
+    wcHours: 'Otevírací doba',
+    wcAccess: 'Přístup',
+    wcYes: 'Ano',
+    wcNo: 'Ne',
+    statToilets: 'WC',
+    geoLocate: 'Moje poloha',
+    geoLocating: 'Hledám polohu...',
+    geoError: 'Nepodařilo se zjistit polohu',
+    geoNotSupported: 'Geolokace není podporována',
+    enableLocation: 'Zapněte polohu pro nalezení WC',
     // Offline packages
     offlinePackages: 'Offline balíčky',
     downloadCity: 'Stáhnout',
-
-    // Language
-    language: 'Jazyk',
+    searchPlaceholderShort: 'Hledat...',
+    panelOpen: 'Otevřít panel',
+    panelClose: 'Zavřít panel',
+    noResults: 'Nic nenalezeno',
+    posSet: 'Poloha nastavena',
+    posSetToCenter: 'Poloha nastavena na střed mapy',
+    setPosition: 'Nastavit polohu',
+    clickToSetPos: 'Klikněte na mapu pro nastavení polohy',
   },
 
   en: {
@@ -280,44 +250,38 @@ const translations = {
     helpRightClick: 'Right-click = report a barrier',
     helpOffline: 'Offline data - download Prague for use without internet',
 
-    statAccessible: 'accessible',
+    statAccessible: 'Accessible',
     statBarriers: 'Barriers',
-    statFootways: 'sidewalks',
+    statFootways: 'Sidewalks',
     statTotal: 'Total places',
-    statWc: 'WC',
 
     layers: 'Layers',
-    layerPois: 'Places & buildings',
-    layerFootways: 'Sidewalks',
-    layerBarriers: 'Barriers',
+    layerPois: 'Buildings & places',
+    layerFootways: 'Sidewalks & paths',
+    layerBarriers: 'Barriers (reports)',
 
     navigation: 'Navigation',
-    findRoute: 'Plan route',
+    findRoute: 'Find route',
     cancel: 'Cancel',
-    clickStart: 'Click on the map — start point',
-    clickEnd: 'Click on the map — destination',
-    startPoint: 'start point',
-    destination: 'destination',
+    clickStart: 'Click on the map for route START',
+    clickEnd: 'Click on the map for route END',
     server: 'Server',
     rightClickHint: 'Right-click on map = report barrier',
 
     offlineRoute: 'Offline route',
     mostAccessible: 'most accessible',
     shortestRoute: 'shortest',
-    wheelchairRoute: 'Wheelchair route',
-    footRoute: 'Walking route (no wheelchair data)',
+    wheelchairRoute: 'Wheelchair route - avoids stairs and bad surfaces',
+    footRoute: 'Walking route - wheelchair accessibility not verified',
     pctAccessible: '% accessible',
     pctLimited: '% limited',
     pctBad: '% bad',
     pctUnknown: '% unknown',
-    clearRoute: 'Clear route',
-    routeFootFallback: 'Walking route — wheelchair profile not available',
-    nearestAccessibleWc: 'Accessible WC',
 
-    importTitle: 'Data',
-    importBtn: 'Load data from OSM',
+    importTitle: 'Load places & sidewalks',
+    importBtn: 'Load data for this area',
     importing: 'Loading...',
-    importDesc: 'Imports places, sidewalks and WC from OpenStreetMap for the visible area. Zoom in (14+).',
+    importDesc: 'Downloads buildings, shops, sidewalks and other places in the visible area.',
 
     toastClickStart: 'Click on route start',
     toastClickEnd: 'Click on route destination',
@@ -331,7 +295,7 @@ const translations = {
     toastSidewalks: 'sidewalks',
     toastOfflineCache: 'Offline mode - data from cache',
     toastLoadError: 'Failed to load data',
-    toastBarrierReported: 'Barrier reported',
+    toastBarrierReported: 'Barrier reported!',
     toastBarrierOffline: 'Barrier saved offline - will sync when connected',
     toastRatingSent: 'Rating submitted!',
     toastRatingOffline: 'Rating saved offline - will sync when connected',
@@ -340,28 +304,12 @@ const translations = {
     toastOfflineRouteLabel: 'Offline route:',
     toastFootRouteLabel: 'Walking route:',
     toastWheelchairRouteLabel: 'Wheelchair route:',
-    toastImported: 'Loaded:',
-    toastImportPlaces: 'places',
-    toastImportSidewalks: 'sidewalks',
-    toastImportError: 'Import error',
-    toastLocationFound: 'Location found',
-    toastLocationError: 'Could not determine location',
-    toastPositionSet: 'Position set',
-    toastSearchingWc: 'Searching for nearest WC...',
-    toastNoWcFound: 'No WC found nearby',
-    toastEnableLocation: 'Enable location to find WC',
-    toastRouteError: 'Error: ',
 
     reportTitle: 'Report barrier',
     reportOfflineNote: 'Offline - barrier will be saved locally and synced when connected',
     reportPosition: 'Position:',
-    reportDescPlaceholder: 'Optional description...',
+    reportDescPlaceholder: 'Describe the barrier...',
     reportSeverity: 'Severity:',
-    reportSeverityMild: 'Mild',
-    reportSeverityMedium: 'Medium',
-    reportSeverityBlocking: 'Blocking',
-    reportBarrierType: 'Barrier type',
-    reportDescription: 'Description',
     reportSubmit: 'Submit',
 
     rateTitle: 'Rate this place',
@@ -376,31 +324,9 @@ const translations = {
     smoothness: 'Smoothness',
     slope: 'Slope',
     accessibility: 'Accessibility',
-    severity: 'Severity',
+    severity: 'Severity:',
     verified: 'Verified',
     unverified: 'Unverified',
-    fee: 'Fee',
-    feeYes: 'Yes',
-    feeNo: 'No',
-    openingHours: 'Opening hours',
-    access: 'Access',
-    barrier: 'Barrier',
-
-    myLocation: 'My location',
-    nearestWc: 'Nearest WC',
-
-    filterCategories: 'Category filter',
-    filterAll: 'All',
-    filterFood: 'Food',
-    filterShops: 'Shops',
-    filterHealth: 'Health',
-    filterCulture: 'Culture',
-
-    legend: 'Legend',
-    legendPlaces: 'Places',
-    legendSidewalks: 'Sidewalks',
-
-    zoomHint: 'Zoom in to display data',
 
     offlineData: 'Offline data',
     online: 'Online',
@@ -461,21 +387,19 @@ const translations = {
     rateLimitedDesc: 'Partially accessible, minor obstacles',
     rateNo: 'Inaccessible',
     rateNoDesc: 'Steps, narrow entrance, no ramp',
-    rateSuccess: 'Rating submitted',
-    rateError: 'Error submitting rating',
 
     scoreUnknown: 'Unknown',
     scoreGood: 'Accessible',
     scoreLimited: 'Limited',
     scoreBad: 'Inaccessible',
 
+    // City & sharing
     selectCity: 'City:',
     gpxExport: 'GPX',
-    gpxExported: 'GPX route downloaded',
     shareUrl: 'Share',
     urlCopied: 'URL copied to clipboard',
 
-    searchPlaceholder: 'Search place or address...',
+    searchPlaceholder: 'Search address or place...',
     searchBtn: 'Search',
     searchNoResults: 'No results found',
     searchError: 'Search error',
@@ -484,10 +408,32 @@ const translations = {
     geoError: 'Could not determine location',
     geoNotSupported: 'Geolocation not supported',
 
+    // WC
+    wcNearest: 'Nearest WC',
+    wcFinding: 'Finding nearest WC...',
+    wcNotFound: 'No WC nearby',
+    wcFilter: 'WC only',
+    wcFee: 'Fee',
+    wcHours: 'Opening hours',
+    wcAccess: 'Access',
+    wcYes: 'Yes',
+    wcNo: 'No',
+    statToilets: 'WC',
+    geoLocate: 'My location',
+    geoLocating: 'Locating...',
+    geoError: 'Could not get location',
+    geoNotSupported: 'Geolocation not supported',
+    enableLocation: 'Enable location to find WC',
     offlinePackages: 'Offline packages',
     downloadCity: 'Download',
-
-    language: 'Language',
+    searchPlaceholderShort: 'Search...',
+    panelOpen: 'Open panel',
+    panelClose: 'Close panel',
+    noResults: 'No results',
+    posSet: 'Position set',
+    posSetToCenter: 'Position set to map center',
+    setPosition: 'Set position',
+    clickToSetPos: 'Click on map to set your position',
   },
 
   de: {
@@ -514,44 +460,38 @@ const translations = {
     helpRightClick: 'Rechtsklick = Barriere melden',
     helpOffline: 'Offline-Daten - Prag herunterladen fuer Nutzung ohne Internet',
 
-    statAccessible: 'barrierefrei',
+    statAccessible: 'Barrierefrei',
     statBarriers: 'Barrieren',
     statFootways: 'Gehwege',
     statTotal: 'Orte gesamt',
-    statWc: 'WC',
 
     layers: 'Ebenen',
-    layerPois: 'Orte & Gebaeude',
-    layerFootways: 'Gehwege',
-    layerBarriers: 'Barrieren',
+    layerPois: 'Gebaeude & Orte',
+    layerFootways: 'Gehwege & Wege',
+    layerBarriers: 'Barrieren (Meldungen)',
 
     navigation: 'Navigation',
-    findRoute: 'Route planen',
+    findRoute: 'Route finden',
     cancel: 'Abbrechen',
-    clickStart: 'Klicken Sie auf die Karte — Startpunkt',
-    clickEnd: 'Klicken Sie auf die Karte — Ziel',
-    startPoint: 'Startpunkt',
-    destination: 'Ziel',
+    clickStart: 'Klicken Sie auf die Karte fuer den START',
+    clickEnd: 'Klicken Sie auf die Karte fuer das ZIEL',
     server: 'Server',
     rightClickHint: 'Rechtsklick auf Karte = Barriere melden',
 
     offlineRoute: 'Offline-Route',
     mostAccessible: 'barrierefreieste',
     shortestRoute: 'kuerzeste',
-    wheelchairRoute: 'Rollstuhlroute',
-    footRoute: 'Fussweg (ohne Rollstuhldaten)',
+    wheelchairRoute: 'Rollstuhlroute - vermeidet Treppen und schlechte Oberflaechen',
+    footRoute: 'Fussweg - Barrierefreiheit nicht geprueft',
     pctAccessible: '% barrierefrei',
     pctLimited: '% eingeschraenkt',
     pctBad: '% schlecht',
     pctUnknown: '% unbekannt',
-    clearRoute: 'Route loeschen',
-    routeFootFallback: 'Fussweg — Rollstuhlprofil nicht verfügbar',
-    nearestAccessibleWc: 'Barrierefreie WC',
 
-    importTitle: 'Daten',
-    importBtn: 'Daten von OSM laden',
+    importTitle: 'Orte & Gehwege laden',
+    importBtn: 'Daten fuer diesen Bereich laden',
     importing: 'Laden...',
-    importDesc: 'Importiert Orte, Gehwege und WC von OpenStreetMap fuer den sichtbaren Bereich. Zoom 14+ erforderlich.',
+    importDesc: 'Laedt Gebaeude, Geschaefte, Gehwege und andere Orte im sichtbaren Bereich.',
 
     toastClickStart: 'Klicken Sie auf den Startpunkt',
     toastClickEnd: 'Klicken Sie auf das Ziel',
@@ -565,7 +505,7 @@ const translations = {
     toastSidewalks: 'Gehwege',
     toastOfflineCache: 'Offline-Modus - Daten aus Cache',
     toastLoadError: 'Daten konnten nicht geladen werden',
-    toastBarrierReported: 'Barriere gemeldet',
+    toastBarrierReported: 'Barriere gemeldet!',
     toastBarrierOffline: 'Barriere offline gespeichert - wird bei Verbindung synchronisiert',
     toastRatingSent: 'Bewertung gesendet!',
     toastRatingOffline: 'Bewertung offline gespeichert - wird bei Verbindung synchronisiert',
@@ -574,28 +514,12 @@ const translations = {
     toastOfflineRouteLabel: 'Offline-Route:',
     toastFootRouteLabel: 'Fussweg:',
     toastWheelchairRouteLabel: 'Rollstuhlroute:',
-    toastImported: 'Geladen:',
-    toastImportPlaces: 'Orte',
-    toastImportSidewalks: 'Gehwege',
-    toastImportError: 'Importfehler',
-    toastLocationFound: 'Standort gefunden',
-    toastLocationError: 'Standort konnte nicht ermittelt werden',
-    toastPositionSet: 'Position gesetzt',
-    toastSearchingWc: 'Suche naechstes WC...',
-    toastNoWcFound: 'Kein WC in der Naehe gefunden',
-    toastEnableLocation: 'Standort aktivieren um WC zu finden',
-    toastRouteError: 'Fehler: ',
 
     reportTitle: 'Barriere melden',
     reportOfflineNote: 'Offline - Barriere wird lokal gespeichert und bei Verbindung synchronisiert',
     reportPosition: 'Position:',
-    reportDescPlaceholder: 'Optionale Beschreibung...',
+    reportDescPlaceholder: 'Barriere beschreiben...',
     reportSeverity: 'Schweregrad:',
-    reportSeverityMild: 'Leicht',
-    reportSeverityMedium: 'Mittel',
-    reportSeverityBlocking: 'Blockierend',
-    reportBarrierType: 'Barrieretyp',
-    reportDescription: 'Beschreibung',
     reportSubmit: 'Absenden',
 
     rateTitle: 'Ort bewerten',
@@ -610,31 +534,9 @@ const translations = {
     smoothness: 'Glattheit',
     slope: 'Neigung',
     accessibility: 'Barrierefreiheit',
-    severity: 'Schweregrad',
+    severity: 'Schweregrad:',
     verified: 'Verifiziert',
     unverified: 'Nicht verifiziert',
-    fee: 'Gebuehr',
-    feeYes: 'Ja',
-    feeNo: 'Nein',
-    openingHours: 'Oeffnungszeiten',
-    access: 'Zugang',
-    barrier: 'Barriere',
-
-    myLocation: 'Mein Standort',
-    nearestWc: 'Naechstes WC',
-
-    filterCategories: 'Kategoriefilter',
-    filterAll: 'Alle',
-    filterFood: 'Essen',
-    filterShops: 'Geschaefte',
-    filterHealth: 'Gesundheit',
-    filterCulture: 'Kultur',
-
-    legend: 'Legende',
-    legendPlaces: 'Orte',
-    legendSidewalks: 'Gehwege',
-
-    zoomHint: 'Karte vergroessern um Daten anzuzeigen',
 
     offlineData: 'Offline-Daten',
     online: 'Online',
@@ -695,17 +597,15 @@ const translations = {
     rateLimitedDesc: 'Teilweise barrierefrei, kleinere Hindernisse',
     rateNo: 'Nicht barrierefrei',
     rateNoDesc: 'Treppen, enger Eingang, keine Rampe',
-    rateSuccess: 'Bewertung gesendet',
-    rateError: 'Fehler beim Senden der Bewertung',
 
     scoreUnknown: 'Unbekannt',
     scoreGood: 'Barrierefrei',
     scoreLimited: 'Eingeschraenkt',
     scoreBad: 'Nicht barrierefrei',
 
+    // City & sharing
     selectCity: 'Stadt:',
     gpxExport: 'GPX',
-    gpxExported: 'GPX-Route heruntergeladen',
     shareUrl: 'Teilen',
     urlCopied: 'URL in Zwischenablage kopiert',
 
@@ -720,8 +620,14 @@ const translations = {
 
     offlinePackages: 'Offline-Pakete',
     downloadCity: 'Herunterladen',
-
-    language: 'Sprache',
+    searchPlaceholderShort: 'Suchen...',
+    panelOpen: 'Panel öffnen',
+    panelClose: 'Panel schließen',
+    noResults: 'Keine Ergebnisse',
+    posSet: 'Position gesetzt',
+    posSetToCenter: 'Position auf Kartenmitte gesetzt',
+    setPosition: 'Position setzen',
+    clickToSetPos: 'Klicken Sie auf die Karte',
   },
 };
 
@@ -732,7 +638,7 @@ const SURFACES = {
     'concrete:plates': 'betonové desky', cobblestone: 'kostky',
     sett: 'žulové kostky', compacted: 'zhutněný štěrk',
     fine_gravel: 'jemný štěrk', gravel: 'štěrk', sand: 'písek',
-    grass: 'tráva', dirt: 'hlína', mud: 'bláto',
+    grass: 'tráva', dirt: 'hlina', mud: 'blato',
     'cobblestone:flattened': 'ploské kostky', wood: 'dřevo', metal: 'kov'
   },
   en: {
@@ -767,12 +673,12 @@ const CATEGORIES = {
     clinic: 'Klinika', doctors: 'Lékař', dentist: 'Zubař', bank: 'Banka',
     atm: 'Bankomat', post_office: 'Pošta', library: 'Knihovna', school: 'Škola',
     university: 'Univerzita', kindergarten: 'Školka', theatre: 'Divadlo',
-    cinema: 'Kino', museum: 'Muzeum', gallery: 'Galerie', place_of_worship: 'Kostel/chrám',
-    parking: 'Parkoviště', fuel: 'Čerpací stanice', toilets: 'WC',
+    cinema: 'Kino', museum: 'Muzeum', gallery: 'Galerie', place_of_worship: 'Kostel/chram',
+    parking: 'Parkoviště', fuel: 'Čerpací stanice', toilets: 'Toalety',
     supermarket: 'Supermarket', convenience: 'Potraviny', bakery: 'Pekárna',
     clothes: 'Oblečení', hairdresser: 'Kadeřnictví', optician: 'Optika',
     shoes: 'Obuv', electronics: 'Elektronika', hotel: 'Hotel', hostel: 'Hostel',
-    guest_house: 'Penzion', apartment: 'Apartmán', information: 'Informace',
+    guest_house: 'Penzion', apartment: 'Apartman', information: 'Informace',
     yes: 'Budova', other: 'Ostatní'
   },
   en: {
@@ -840,34 +746,4 @@ function getCategory(key, lang) {
   return CATEGORIES[l]?.[key] || CATEGORIES.cs[key] || key;
 }
 
-function getWheelchairLabel(key, lang) {
-  const map = { yes: 'wheelchairYes', limited: 'wheelchairLimited', no: 'wheelchairNo', unknown: 'wheelchairUnknown' };
-  return t(map[key] || 'wheelchairUnknown', lang);
-}
-
-function getScoreLabel(score, lang) {
-  const map = { 0: 'scoreUnknown', 1: 'scoreGood', 2: 'scoreLimited', 3: 'scoreBad' };
-  return t(map[score] || 'scoreUnknown', lang);
-}
-
-function getBarrierTypeLabel(value, lang) {
-  const map = {
-    steps: 'barrierSteps', high_kerb: 'barrierKerb', narrow_passage: 'barrierNarrow',
-    steep_slope: 'barrierSlope', bad_surface: 'barrierSurface', construction: 'barrierConstruction',
-    no_ramp: 'barrierNoRamp', other: 'barrierOther'
-  };
-  return t(map[value] || 'barrierOther', lang);
-}
-
-function getSeverityLabel(severity, lang) {
-  const map = { 1: 'reportSeverityMild', 2: 'reportSeverityMedium', 3: 'reportSeverityBlocking' };
-  return t(map[severity] || 'reportSeverityMedium', lang);
-}
-
-function getFilterGroupLabel(key, lang) {
-  const map = { wc: 'WC', food: 'filterFood', shops: 'filterShops', health: 'filterHealth', culture: 'filterCulture' };
-  if (key === 'wc') return 'WC';
-  return t(map[key] || key, lang);
-}
-
-export { translations, SUPPORTED_LANGS, getLang, setLang, t, getSurface, getSmoothness, getCategory, getWheelchairLabel, getScoreLabel, getBarrierTypeLabel, getSeverityLabel, getFilterGroupLabel };
+export { translations, SUPPORTED_LANGS, getLang, setLang, t, getSurface, getSmoothness, getCategory };

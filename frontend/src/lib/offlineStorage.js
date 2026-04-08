@@ -170,7 +170,7 @@ export function generateTileUrls(minLat, minLng, maxLat, maxLng, zooms) {
     for (let x = xMin; x <= xMax; x++) {
       for (let y = yMin; y <= yMax; y++) {
         const s = ['a', 'b', 'c'][Math.abs(x + y) % 3];
-        urls.push(`https://${s}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`);
+        urls.push(`https://${s}.tile.openstreetmap.org/${z}/${x}/${y}.png`);
       }
     }
   }

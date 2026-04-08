@@ -228,8 +228,8 @@ export default function OfflineManager({ onStatusChange, onDataUpdated, lang, ci
       </h3>
 
       <p style={{ fontSize: 11, color: '#666', margin: '2px 0 6px' }}>
-        {lang === 'cs' ? 'Mapa funguje vsude online. Pro offline pouziti stahni balicek:' :
-         lang === 'de' ? 'Karte funktioniert ueberall online. Fuer offline Pakete herunterladen:' :
+        {lang === 'cs' ? 'Mapa funguje všude online. Pro offline použití stáhni balíček:' :
+         lang === 'de' ? 'Karte funktioniert überall online. Für offline Pakete herunterladen:' :
          'Map works everywhere online. For offline use download a package:'}
       </p>
 
@@ -241,10 +241,10 @@ export default function OfflineManager({ onStatusChange, onDataUpdated, lang, ci
           return (
             <div key={key} style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              padding: '5px 8px', background: '#f8fafc', borderRadius: 6,
-              border: isActive ? '1px solid var(--primary)' : '1px solid var(--border)',
+              padding: '5px 8px', background: '#16213e', borderRadius: 6,
+              border: isActive ? '1px solid #4cc9f0' : '1px solid #333',
             }}>
-              <span style={{ flex: 1, fontSize: 13, color: isActive ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive ? 600 : 400 }}>
+              <span style={{ flex: 1, fontSize: 13, color: isActive ? '#4cc9f0' : '#ccc', fontWeight: isActive ? 600 : 400 }}>
                 {cityObj.name[lang] || cityObj.name.en}
               </span>
               {isActive && status?.hasData && (
@@ -254,7 +254,7 @@ export default function OfflineManager({ onStatusChange, onDataUpdated, lang, ci
               )}
               {!downloading && online && (
                 <button className="btn btn-sm"
-                  style={{ padding: '2px 8px', fontSize: 11, background: isActive ? 'var(--primary)' : 'var(--border)', color: isActive ? '#fff' : 'var(--text-muted)' }}
+                  style={{ padding: '2px 8px', fontSize: 11, background: isActive ? '#4cc9f0' : '#333', color: isActive ? '#1a1a2e' : '#aaa' }}
                   onClick={() => { handleCityChange(key); setTimeout(() => downloadData(), 100); }}>
                   {isActive && status?.hasData ? t('updateAll', lang) : t('downloadCity', lang)}
                 </button>
@@ -266,20 +266,20 @@ export default function OfflineManager({ onStatusChange, onDataUpdated, lang, ci
 
       {downloading && (
         <div style={{ margin: '4px 0 8px' }}>
-          <div style={{ background: 'var(--border)', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+          <div style={{ background: '#333', borderRadius: 4, height: 6, overflow: 'hidden' }}>
             <div style={{
-              background: progress.phase === 'error' ? '#ef4444' : 'var(--primary)',
+              background: progress.phase === 'error' ? '#ef4444' : '#4cc9f0',
               height: '100%', width: progress.percent + '%',
               transition: 'width 0.3s'
             }} />
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{progress.detail}</div>
+          <div style={{ fontSize: 11, color: '#aaa', marginTop: 4 }}>{progress.detail}</div>
         </div>
       )}
 
       {status?.hasData && (
-        <div style={{ background: '#f8fafc', borderRadius: 8, padding: 8, margin: '4px 0', fontSize: 11 }}>
-          <div style={{ color: 'var(--text-muted)' }}>
+        <div style={{ background: '#16213e', borderRadius: 8, padding: 8, margin: '4px 0', fontSize: 11 }}>
+          <div style={{ color: '#aaa' }}>
             {status.poisCount} {t('places', lang)}, {status.footwaysCount} {t('sidewalks', lang)}, {status.barriersCount} {t('barriers', lang)}
             {tilesCached > 0 ? ', ' + tilesCached + ' ' + t('tilesInCache', lang) : ''}
           </div>
@@ -289,17 +289,17 @@ export default function OfflineManager({ onStatusChange, onDataUpdated, lang, ci
             </div>
           )}
           {status.lastSync && (
-            <div style={{ color: 'var(--text-light)', marginTop: 2 }}>
+            <div style={{ color: '#666', marginTop: 2 }}>
               {t('lastSync', lang)} {new Date(status.lastSync).toLocaleString('cs')}
             </div>
           )}
           <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
             {online && (
-              <button className="btn btn-sm" style={{ background: 'var(--border)', color: 'var(--primary)', fontSize: 11, padding: '2px 8px' }} onClick={syncAll} disabled={syncing}>
+              <button className="btn btn-sm" style={{ background: '#333', color: '#4cc9f0', fontSize: 11, padding: '2px 8px' }} onClick={syncAll} disabled={syncing}>
                 {syncing ? t('syncDots', lang) : t('synchronize', lang)}
               </button>
             )}
-            <button className="btn btn-sm" style={{ background: 'var(--border)', color: '#ef4444', fontSize: 11, padding: '2px 8px' }} onClick={clearOfflineData}>
+            <button className="btn btn-sm" style={{ background: '#333', color: '#ef4444', fontSize: 11, padding: '2px 8px' }} onClick={clearOfflineData}>
               {t('deleteData', lang)}
             </button>
           </div>

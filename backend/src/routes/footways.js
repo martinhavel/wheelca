@@ -2,8 +2,7 @@ export async function footwaysRoutes(app) {
   app.get('/', async (req, reply) => {
     const { minLat, minLng, maxLat, maxLng } = req.query;
     if (!minLat || !minLng || !maxLat || !maxLng) {
-      reply.code(400);
-      return { error: 'Missing bbox params' };
+      reply.code(400); return { error: 'Missing bbox params' };
     }
     const result = await app.db.query(`
       SELECT id, osm_id, surface, smoothness, incline, width, wheelchair, kerb,

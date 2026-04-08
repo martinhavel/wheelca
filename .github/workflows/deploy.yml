@@ -38,14 +38,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sync code to compose directory
+      - name: Sync application code
         run: |
-          rsync -a --delete \
-            --exclude='.git' \
-            --exclude='.env' \
-            --exclude='node_modules' \
-            --exclude='.github' \
-            ./ /opt/docker/compose/wheelchair-map/
+          rsync -a --delete --exclude='node_modules' \
+            ./backend/ /opt/docker/compose/wheelchair-map/backend/
+          rsync -a --delete --exclude='node_modules' \
+            ./frontend/ /opt/docker/compose/wheelchair-map/frontend/
+          rsync -a ./scripts/ /opt/docker/compose/wheelchair-map/scripts/
 
       - name: Build and restart containers
         working-directory: /opt/docker/compose/wheelchair-map
@@ -62,15 +61,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sync code to Hetzner VPS
-        uses: burnett01/rsync-deployments@7.0.2
-        with:
-          switches: -avz --delete --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='.github'
-          path: ./
-          remote_path: /opt/docker/compose/wheelchair-map/
-          remote_host: ${{ secrets.PRODUCTION_HOST }}
-          remote_user: martin
-          remote_key: ${{ secrets.DEPLOY_SSH_KEY }}
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync application code to Hetzner
+        run: |
+          rsync -avz --delete --exclude='node_modules' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./backend/ martin@${{ secrets.PRODUCTION_HOST }}:/opt/docker/compose/wheelchair-map/backend/
+          rsync -avz --delete --exclude='node_modules' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./frontend/ martin@${{ secrets.PRODUCTION_HOST }}:/opt/docker/compose/wheelchair-map/frontend/
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./scripts/ martin@${{ secrets.PRODUCTION_HOST }}:/opt/docker/compose/wheelchair-map/scripts/
 
       - name: Build and restart containers
         uses: appleboy/ssh-action@v1

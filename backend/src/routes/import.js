@@ -1,14 +1,15 @@
 export async function importRoutes(app) {
   // Import POI z OSM Overpass API pro daný bbox
-  app.post('/osm-pois', async (req) => {
+  app.post('/osm-pois', async (req, reply) => {
     const minLat = parseFloat(req.body.minLat);
     const minLng = parseFloat(req.body.minLng);
     const maxLat = parseFloat(req.body.maxLat);
     const maxLng = parseFloat(req.body.maxLng);
-    if ([minLat, minLng, maxLat, maxLng].some(isNaN) ||
+    if ([minLat, minLng, maxLat, maxLng].some(isNaN) || 
         minLat < -90 || maxLat > 90 || minLng < -180 || maxLng > 180 ||
         (maxLat - minLat) > 0.5 || (maxLng - minLng) > 0.5) {
-      return { error: 'Invalid or too large bbox' };
+      reply.code(400);
+      return { error: "Invalid or too large bbox" };
     }
     const bbox = `${minLat},${minLng},${maxLat},${maxLng}`;
 
@@ -60,15 +61,16 @@ export async function importRoutes(app) {
   });
 
   // Import chodníků z OSM
-  app.post('/osm-footways', async (req) => {
+  app.post('/osm-footways', async (req, reply) => {
     const minLat = parseFloat(req.body.minLat);
     const minLng = parseFloat(req.body.minLng);
     const maxLat = parseFloat(req.body.maxLat);
     const maxLng = parseFloat(req.body.maxLng);
-    if ([minLat, minLng, maxLat, maxLng].some(isNaN) ||
+    if ([minLat, minLng, maxLat, maxLng].some(isNaN) || 
         minLat < -90 || maxLat > 90 || minLng < -180 || maxLng > 180 ||
         (maxLat - minLat) > 0.5 || (maxLng - minLng) > 0.5) {
-      return { error: 'Invalid or too large bbox' };
+      reply.code(400);
+      return { error: "Invalid or too large bbox" };
     }
     const bbox = `${minLat},${minLng},${maxLat},${maxLng}`;
 
@@ -123,61 +125,41 @@ export async function importRoutes(app) {
   });
 
   // Import WC/toalet z OSM (i bez wheelchair tagu)
-  app.post('/osm-toilets', async (req) => {
+  app.post('/osm-toilets', async (req, reply) => {
     const minLat = parseFloat(req.body.minLat);
     const minLng = parseFloat(req.body.minLng);
     const maxLat = parseFloat(req.body.maxLat);
     const maxLng = parseFloat(req.body.maxLng);
-    if ([minLat, minLng, maxLat, maxLng].some(isNaN) ||
+    if ([minLat, minLng, maxLat, maxLng].some(isNaN) || 
         minLat < -90 || maxLat > 90 || minLng < -180 || maxLng > 180 ||
         (maxLat - minLat) > 0.5 || (maxLng - minLng) > 0.5) {
-      return { error: 'Invalid or too large bbox' };
+      reply.code(400);
+      return { error: "Invalid or too large bbox" };
     }
     const bbox = `${minLat},${minLng},${maxLat},${maxLng}`;
-
-    const query = `
-      [out:json][timeout:60];
-      (
-        node["amenity"="toilets"](${bbox});
-        way["amenity"="toilets"](${bbox});
-      );
-      out center tags;
-    `;
-
+    const query = `[out:json][timeout:60];(node["amenity"="toilets"](${bbox});way["amenity"="toilets"](${bbox}););out center tags;`;
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
-      body: `data=${encodeURIComponent(query)}`
+      body: 'data=' + encodeURIComponent(query)
     });
-
-    if (!response.ok) {
-      return { error: 'Overpass API error', status: response.status };
-    }
-
+    if (!response.ok) return { error: 'Overpass API error', status: response.status };
     const data = await response.json();
     let imported = 0;
-
     for (const el of data.elements) {
       const lat = el.lat || el.center?.lat;
       const lng = el.lon || el.center?.lon;
       if (!lat || !lng) continue;
-
       const name = el.tags?.name || null;
       const wheelchair = el.tags?.wheelchair || 'unknown';
       const tags = JSON.stringify(el.tags || {});
-
-      await app.db.query(`
-        INSERT INTO pois (osm_id, name, wheelchair, category, geom, tags)
-        VALUES ($1, $2, $3, 'toilets', ST_SetSRID(ST_MakePoint($4, $5), 4326), $6)
-        ON CONFLICT (osm_id) DO UPDATE SET
-          name = EXCLUDED.name,
-          wheelchair = EXCLUDED.wheelchair,
-          category = 'toilets',
-          tags = EXCLUDED.tags,
-          updated_at = NOW()
-      `, [el.id, name, wheelchair, lng, lat, tags]);
+      await app.db.query(
+        `INSERT INTO pois (osm_id, name, wheelchair, category, geom, tags)
+         VALUES ($1, $2, $3, 'toilets', ST_SetSRID(ST_MakePoint($4, $5), 4326), $6)
+         ON CONFLICT (osm_id) DO UPDATE SET name=EXCLUDED.name, wheelchair=EXCLUDED.wheelchair, category='toilets', tags=EXCLUDED.tags, updated_at=NOW()`,
+        [el.id, name, wheelchair, lng, lat, tags]
+      );
       imported++;
     }
-
     return { imported, total_elements: data.elements.length };
   });
 }
@@ -194,7 +176,7 @@ function computeScore(tags) {
 
   if (tags.wheelchair === 'no') return 3;
   if (tags.wheelchair === 'yes') return 1;
-  if (tags.wheelchair === 'limited') return 2;
+  if (tags.wheelchair === "limited") return 2;
   if (smoothness === 'excellent' || smoothness === 'good') return 1;
   if (smoothness === 'bad' || smoothness === 'very_bad' || smoothness === 'horrible') return 3;
   if (goodSurfaces.includes(surface)) return 1;

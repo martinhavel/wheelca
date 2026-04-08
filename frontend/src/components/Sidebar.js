@@ -27,23 +27,11 @@ export default function Sidebar({
   stats, routeMode, setRouteMode, routeInfo, route, onClearRoute,
   loading, onImport, onLocate, onFindWc, sidebarOpen, setSidebarOpen,
   lang, onSetLang, city, onSetCity, onGpxExport, onShareUrl,
-  isOnline
+  isOnline, wcOnly, setWcOnly, routeProfile, setRouteProfile,
+  user, onSaveRoute
 }) {
   return (
     <>
-      {/* Mobile toggle */}
-      <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        {sidebarOpen ? (
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        )}
-      </button>
-
       <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand">
           <div className="brand-icon">♿</div>
@@ -112,6 +100,17 @@ export default function Sidebar({
             ♿ {t('nearestAccessibleWc', lang)}
           </button>
         </div>
+
+      {/* WC filter toggle */}
+      <div style={{ padding: "0 20px 8px" }}>
+        <label className="layer-row">
+          <div className={`toggle ${wcOnly ? "toggle-on" : ""}`} style={wcOnly ? { background: "var(--purple, #7c3aed)" } : {}}>
+            <div className="toggle-thumb" />
+          </div>
+          <span>{"🚻"} {t("wcFilter", lang)}</span>
+          <input type="checkbox" checked={wcOnly} onChange={() => setWcOnly(!wcOnly)} hidden />
+        </label>
+      </div>
 
         {/* Category filters */}
         <Section title={t('filterCategories', lang)}>
@@ -218,6 +217,7 @@ export default function Sidebar({
                 <button className="btn btn-ghost btn-sm" onClick={onClearRoute}>{t('clearRoute', lang)}</button>
                 {onGpxExport && <button className="btn btn-ghost btn-sm" onClick={onGpxExport}>GPX</button>}
                 {onShareUrl && <button className="btn btn-ghost btn-sm" onClick={onShareUrl}>{t('shareUrl', lang)}</button>}
+                {user && route && <button className="btn btn-outline btn-sm" onClick={onSaveRoute}>{t('saveRoute', lang)}</button>}
               </div>
             </div>
           )}

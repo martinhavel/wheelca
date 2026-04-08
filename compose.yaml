@@ -11,8 +11,9 @@ services:
       - /opt/docker/volumes/wheelchair-map/db:/var/lib/postgresql/data
       - ./backend/src/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
       - ./scripts/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - ./backend/src/db/002-auth.sql:/docker-entrypoint-initdb.d/03-auth.sql
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U wheelchair"]
       interval: 5s
@@ -43,8 +44,12 @@ services:
     build:
       context: ./frontend
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api-wheelca.mhai.app}
+        NEXT_PUBLIC_API_URL: https://api-wheelca.mhai.app
     container_name: wheelchair-web
+    environment:
+      NEXT_PUBLIC_API_URL: https://api-wheelca.mhai.app
+      NEXT_PUBLIC_MAP_CENTER_LAT: 50.0755
+      NEXT_PUBLIC_MAP_CENTER_LNG: 14.4378
     ports:
       - "3011:3000"
     depends_on:
